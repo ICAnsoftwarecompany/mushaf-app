@@ -1,14 +1,25 @@
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * بيرجّع ألوان الثيم اللي المستخدم اختاره من ثيمات المصحف (src/theme)،
+ * بنفس المفاتيح اللي ThemedText و ThemedView والتابات بيستخدموها.
  */
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useMemo } from 'react';
+
+import { useMushafTheme } from '@/theme/ThemeContext';
 
 export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+  const { theme } = useMushafTheme();
+  const c = theme.colors;
 
-  return Colors[theme];
+  return useMemo(
+    () => ({
+      text: c.text,
+      background: c.background,
+      backgroundElement: c.surface,
+      backgroundSelected: c.highlight,
+      textSecondary: c.textSecondary,
+      accent: c.accent,
+    }),
+    [c]
+  );
 }
