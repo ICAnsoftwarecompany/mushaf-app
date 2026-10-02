@@ -3,7 +3,10 @@
 ```
 mushaf-app/
 ├── AGENTS.md / CLAUDE.md        تعليمات لأدوات الذكاء الاصطناعي (بتشاور على docs/)
-├── app.json                     إعدادات Expo (الاسم، الأيقونة، لون الـ splash)
+├── app.json                     إعدادات Expo (الاسم، الـ package والـ bundle ID، الأيقونة، لون الـ splash)
+├── eas.json                     بروفايلات بناء أندرويد و iOS (preview و production)
+├── workbox-config.cjs           إعدادات الـ service worker لنسخة الويب
+├── public/                      ملفات الويب الثابتة: manifest.json وأيقونات PWA
 ├── package.json                 المكتبات والأوامر
 ├── docs/                        التوثيق (الفولدر ده)
 ├── scripts/
@@ -12,6 +15,7 @@ mushaf-app/
 └── src/
     ├── app/                     الشاشات (Expo Router) — كل ملف = شاشة
     │   ├── _layout.tsx          الجذر: تحميل الخط + الثيم + حالة القراءة + Stack
+    │   ├── +html.tsx            قالب HTML للويب (اللغة، PWA، service worker)
     │   ├── (tabs)/              التابات
     │   │   ├── _layout.tsx
     │   │   ├── index.tsx        الفهرس (السور والأجزاء + متابعة القراءة)
@@ -19,7 +23,7 @@ mushaf-app/
     │   │   ├── bookmarks.tsx    العلامات
     │   │   └── settings.tsx     الإعدادات + مصادر البيانات
     │   └── mushaf/
-    │       └── [page].tsx       القارئ
+    │       └── [page].tsx       القارئ (+ generateStaticParams لبناء الـ 604 صفحة على الويب)
     ├── components/
     │   ├── app-tabs.tsx         التابات الأصلية للموبايل (NativeTabs)
     │   ├── app-tabs.web.tsx     شريط التابات على الويب
@@ -75,5 +79,7 @@ ThemeProvider            (src/theme/ThemeContext.tsx)
 | `@react-native-async-storage/async-storage` | حفظ الإعدادات والعلامات |
 | `@expo-google-fonts/scheherazade-new` | خط نص القرآن |
 | `expo-splash-screen` | شاشة البداية لحد ما الخط يتحمّل |
+| `expo-asset` | مطلوبة لـ `expo-audio` |
+| `workbox-cli` (dev) | توليد الـ service worker للويب |
 
 مكتبات متسطّبة ولسه مش مستخدمة (للمراحل الجاية): `expo-audio`، `expo-file-system`، `expo-sqlite`.

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mushaf-app",
+    "name": "المصحف",
     "slug": "mushaf-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,12 @@
     "scheme": "mushafapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.icansoftware.mushaf",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +22,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.icansoftware.mushaf"
     },
     "web": {
       "output": "static",
@@ -37,6 +43,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "description": "المصحف الشريف — رواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت"
   }
 }

@@ -3,7 +3,9 @@
  *   (tabs)          التابات (الفهرس، البحث، العلامات، الإعدادات)
  *   mushaf/[page]   شاشة القراءة (ملء الشاشة فوق التابات)
  */
-import { ScheherazadeNew_400Regular, useFonts } from '@expo-google-fonts/scheherazade-new';
+// بنستورد الوزن العادي بس (مش الحزمة كلها) علشان باقي الأوزان ما تدخلش في حجم التطبيق
+import { ScheherazadeNew_400Regular } from '@expo-google-fonts/scheherazade-new/400Regular';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';

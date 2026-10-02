@@ -36,6 +36,8 @@ npx expo start --clear
 | **الموبايل** (الأدق) | الموبايل والكمبيوتر على نفس الواي فاي ← افتح Expo Go ← اعمل Scan للـ QR code |
 | **الويب** (معاينة سريعة) | اضغط `w` في الـ terminal |
 | **محاكي أندرويد** | شغّل المحاكي الأول، وبعدين اضغط `a` |
+| **نسخة الويب النهائية** | `npm run build:web` وبعدين `npm run serve:web` |
+| **APK على موبايل أندرويد** | `npx eas-cli@latest build --platform android --profile preview` (التفاصيل في [platforms.md](platforms.md)) |
 
 لو الموبايل مش راضي يتصل:
 

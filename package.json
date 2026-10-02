@@ -8,6 +8,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@shopify/flash-list": "2.0.2",
     "expo": "~57.0.26",
+    "expo-asset": "~57.0.18",
     "expo-audio": "~57.0.5",
     "expo-constants": "~57.0.20",
     "expo-device": "~57.0.2",
@@ -35,7 +36,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "workbox-cli": "^7.4.1"
   },
   "scripts": {
     "start": "expo start",
@@ -43,7 +45,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "build:quran-data": "node scripts/build-quran-data.mjs"
+    "build:quran-data": "node scripts/build-quran-data.mjs",
+    "build:web": "expo export --platform web && workbox generateSW workbox-config.cjs",
+    "serve:web": "npx serve dist"
   },
   "private": true
 }

@@ -30,6 +30,11 @@ import { ROW, rtlText } from '@/constants/rtl';
 /** نسبة عرض لارتفاع صفحة المصحف تقريبًا — بنستخدمها على الشاشات العريضة (الويب والتابلت) */
 const PAGE_ASPECT = 0.66;
 
+/** نسخة الويب: بنبني صفحة HTML لكل صفحة من الـ 604 وقت البناء، علشان أي لينك زي /mushaf/50 يفتح مباشرة */
+export async function generateStaticParams(): Promise<Record<string, string>[]> {
+  return Array.from({ length: TOTAL_PAGES }, (_, i) => ({ page: String(i + 1) }));
+}
+
 export default function MushafScreen() {
   const params = useLocalSearchParams<{ page: string; ayah?: string }>();
   const initialAyah = params.ayah ? Number(params.ayah) : null;
