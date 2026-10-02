@@ -36,7 +36,7 @@ function ThemeSwatch({
   );
 }
 
-export default function ThemePicker() {
+export default function ThemePicker({ children }: { children?: React.ReactNode }) {
   const { theme, mode, setMode, tajweedEnabled, setTajweedEnabled } = useMushafTheme();
   const c = theme.colors;
 
@@ -84,12 +84,14 @@ export default function ThemePicker() {
           trackColor={{ true: c.accent, false: c.border }}
         />
       </View>
+
+      {children}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 16 },
+  container: { padding: 16, gap: 16, paddingBottom: 120 },
   title: { fontSize: 22, fontWeight: '700', textAlign: 'right' },
   systemRow: {
     flexDirection: 'row-reverse',
