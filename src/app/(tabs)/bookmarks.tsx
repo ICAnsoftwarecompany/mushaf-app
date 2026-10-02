@@ -6,7 +6,8 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { rtlText, Screen } from '@/components/screen';
+import { Screen } from '@/components/screen';
+import { ROW, rtlText } from '@/constants/rtl';
 import { BottomTabInset, QuranFont } from '@/constants/theme';
 import { ayahNumber, ayahs, surahOfAyah, surahsOfPage, toArabicDigits } from '@/data/quran';
 import { type Bookmark, useReading } from '@/store/reading-store';
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyText: { fontSize: 14, textAlign: 'center', lineHeight: 22, writingDirection: 'rtl' },
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: 16,

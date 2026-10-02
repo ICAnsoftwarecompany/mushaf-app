@@ -6,7 +6,8 @@ import { router } from 'expo-router';
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { rtlText, Screen } from '@/components/screen';
+import { Screen } from '@/components/screen';
+import { rtlText } from '@/constants/rtl';
 import { BottomTabInset, QuranFont } from '@/constants/theme';
 import { ayahNumber, ayahs, pageOfAyah, surahOfAyah, toArabicDigits } from '@/data/quran';
 import { searchQuran } from '@/data/quran/search';

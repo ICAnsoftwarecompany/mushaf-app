@@ -4,7 +4,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { rtlText, Screen } from '@/components/screen';
+import { Screen } from '@/components/screen';
+import { rtlText } from '@/constants/rtl';
 import { useMushafTheme } from '@/theme/ThemeContext';
 import ThemePicker from '@/theme/ThemePicker';
 

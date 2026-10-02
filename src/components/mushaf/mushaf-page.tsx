@@ -2,7 +2,7 @@
  * صفحة واحدة من المصحف بنفس ترتيب سطور مصحف المدينة (15 سطر).
  * النص بيتعرض من ayahs.json زي ما هو — الكومبوننت ده بيرتّب الكلمات بس.
  */
-import React, { memo, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { QuranFont } from '@/constants/theme';
@@ -20,6 +20,7 @@ import {
   toArabicDigits,
 } from '@/data/quran';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { ROW } from '@/constants/rtl';
 
 const LINES_PER_PAGE = 15;
 const LINE_HEIGHT_FACTOR = 1.75;
@@ -90,6 +91,23 @@ function MushafPageView({ page, width, height, selectedAyah, onAyahPress, onBack
       setWidths(result);
     }
   };
+
+  // احتياطي: لو القياس ما خلصش في ثانية (لأي سبب على جهاز معين) نستخدم تقدير بعدد الحروف
+  // علشان الصفحة ما تفضلش فاضية أبدًا
+  useEffect(() => {
+    if (widths) return;
+    const t = setTimeout(() => {
+      if (widthCache.has(page)) return setWidths(widthCache.get(page)!);
+      const estimate = lines.map(({ words }) =>
+        words.reduce(
+          (n, w) => n + (w.text.replace(/[^\u0621-\u064A\u0671]/g, '').length * 0.42 + 0.35 + (w.end ? 1.4 : 0)) * MEASURE_FONT,
+          0
+        )
+      );
+      setWidths(estimate);
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [widths, lines, page]);
 
   const padX = Math.max(12, width * 0.04);
   const headerH = 28;
@@ -172,7 +190,7 @@ function MushafPageView({ page, width, height, selectedAyah, onAyahPress, onBack
                             height: fontSize * 1.05,
                             borderRadius: fontSize,
                             borderColor: c.accent,
-                            marginRight: w.text ? fontSize * 0.15 : 0,
+                            marginHorizontal: w.text ? fontSize * 0.08 : 0,
                           },
                         ]}>
                         <Text style={{ fontSize: fontSize * 0.42, color: c.accent, fontWeight: '600' }}>
@@ -222,7 +240,7 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   margin: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -252,11 +270,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wordLine: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignItems: 'center',
   },
   word: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignItems: 'center',
   },
   measureLayer: {
@@ -267,7 +285,7 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   measureRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignSelf: 'flex-start',
   },
   ayahMark: {

@@ -1,12 +1,14 @@
 /**
- * تقليب صفحات المصحف (أندرويد و iOS).
+ * تقليب صفحات المصحف (أندرويد و iOS) بقائمة أفقية بتقف عند كل صفحة.
  * الاتجاه من اليمين للشمال: الصفحة الجاية على الشمال زي المصحف الورقي.
- * بنرسم الصفحة الحالية واللي جنبها بس علشان الأداء (604 صفحة).
+ *
+ * ليه مش PagerView؟ على أندرويد كانت الصفحة بتظهر فاضية لحد ما المستخدم يلمس الشاشة،
+ * لأن محتوى الصفحة بيترسم بعد ما الصفحة نفسها تتضاف. FlatList ما عندهاش المشكلة دي.
  */
-import React, { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import PagerView from 'react-native-pager-view';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { FlatList, type LayoutChangeEvent, StyleSheet, View, type ViewToken } from 'react-native';
 
+import { IS_RTL_LAYOUT } from '@/constants/rtl';
 import { TOTAL_PAGES } from '@/data/quran';
 
 export interface PagePagerProps {
@@ -16,37 +18,65 @@ export interface PagePagerProps {
 }
 
 const PAGE_NUMBERS = Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1);
-const WINDOW = 1;
+
+/**
+ * لو تخطيط الجهاز LTR بنقلب القائمة علشان الصفحة الجاية تبقى على الشمال.
+ * لو الجهاز عربي (RTL) القائمة الأفقية بتتقلب لوحدها.
+ */
+const INVERTED = !IS_RTL_LAYOUT;
 
 export function PagePager({ initialPage, onPageChange, renderPage }: PagePagerProps) {
-  const [current, setCurrent] = useState(initialPage);
+  const [width, setWidth] = useState(0);
+  const current = useRef(initialPage);
 
-  const handleSelected = useCallback(
-    (e: { nativeEvent: { position: number } }) => {
-      const page = e.nativeEvent.position + 1;
-      setCurrent(page);
+  const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken<number>[] }) => {
+    const page = viewableItems[0]?.item;
+    if (typeof page === 'number' && page !== current.current) {
+      current.current = page;
       onPageChange(page);
-    },
-    [onPageChange]
+    }
+  }).current;
+
+  const viewabilityConfig = useMemo(() => ({ itemVisiblePercentThreshold: 60 }), []);
+
+  const getItemLayout = useCallback(
+    (_: ArrayLike<number> | null | undefined, index: number) => ({ length: width, offset: width * index, index }),
+    [width]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: number }) => <View style={[styles.page, { width }]}>{renderPage(item)}</View>,
+    [width, renderPage]
   );
 
   return (
-    <PagerView
-      style={styles.pager}
-      initialPage={initialPage - 1}
-      layoutDirection="rtl"
-      offscreenPageLimit={1}
-      onPageSelected={handleSelected}>
-      {PAGE_NUMBERS.map((page) => (
-        <View key={page} style={styles.page} collapsable={false}>
-          {Math.abs(page - current) <= WINDOW ? renderPage(page) : null}
-        </View>
-      ))}
-    </PagerView>
+    <View style={styles.container} onLayout={onLayout}>
+      {width > 0 && (
+        <FlatList
+          data={PAGE_NUMBERS}
+          keyExtractor={String}
+          renderItem={renderItem}
+          horizontal
+          inverted={INVERTED}
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          getItemLayout={getItemLayout}
+          initialScrollIndex={initialPage - 1}
+          initialNumToRender={1}
+          maxToRenderPerBatch={2}
+          windowSize={3}
+          removeClippedSubviews
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pager: { flex: 1 },
-  page: { flex: 1 },
+  container: { flex: 1, alignSelf: 'stretch' },
+  page: { flex: 1, alignItems: 'center' },
 });

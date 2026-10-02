@@ -32,8 +32,12 @@
 
 ## 5. الاتجاه من اليمين للشمال (RTL)
 
-- كل نص عربي بياخد `textAlign: 'right'` و `writingDirection: 'rtl'`. استخدم `rtlText` من `src/components/screen.tsx`.
-- الصفوف بتستخدم `flexDirection: 'row-reverse'` علشان أول عنصر يبقى على اليمين.
+- **ممنوع تكتب الاتجاه بنفسك** (`'row-reverse'` أو `textAlign: 'right'` أو `'left'`). استخدم القيم اللي في `src/constants/rtl.ts`:
+  - `ROW`: صف بيبدأ من اليمين.
+  - `TEXT_RIGHT` و `TEXT_LEFT`: محاذاة النص.
+  - `rtlText`: نص عربي محاذي لليمين.
+- **السبب:** لو لغة الموبايل عربي، React Native بيقلب التخطيط لوحده، فـ `'row-reverse'` بيرجع العناصر من الشمال، و `textAlign: 'right'` بيتقلب لشمال على أندرويد. الملف ده بيحسب القيمة الصح في الحالتين.
+- لو محتاج هامش على جنب واحد، استخدم `marginHorizontal` أو `gap` بدل `marginLeft` و `marginRight`.
 - تقليب صفحات المصحف من اليمين للشمال: الصفحة الجاية على الشمال.
 - الأرقام اللي بتظهر للمستخدم تكون بالأرقام العربية باستخدام `toArabicDigits()`.
 

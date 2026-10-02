@@ -6,7 +6,8 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { rtlText, Screen } from '@/components/screen';
+import { Screen } from '@/components/screen';
+import { ROW, TEXT_LEFT, rtlText } from '@/constants/rtl';
 import { BottomTabInset } from '@/constants/theme';
 import {
   getSurah,
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
   continueLabel: { fontSize: 13, ...rtlText },
   continueTitle: { fontSize: 20, fontWeight: '700', ...rtlText },
   continueMeta: { fontSize: 14, fontWeight: '600', ...rtlText },
-  segment: { flexDirection: 'row-reverse', borderWidth: 1, borderRadius: 12, padding: 4 },
+  segment: { flexDirection: ROW, borderWidth: 1, borderRadius: 12, padding: 4 },
   segmentItem: {
     flex: 1,
     alignItems: 'center',
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   row: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignItems: 'center',
     gap: 14,
     paddingHorizontal: 16,
@@ -167,5 +168,5 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 2 },
   rowTitle: { fontSize: 17, fontWeight: '600', ...rtlText },
   rowMeta: { fontSize: 13, ...rtlText },
-  page: { fontSize: 14, minWidth: 32, textAlign: 'left' },
+  page: { fontSize: 14, minWidth: 32, textAlign: TEXT_LEFT },
 });

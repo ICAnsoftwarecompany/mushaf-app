@@ -23,14 +23,16 @@ mushaf-app/
     ├── components/
     │   ├── app-tabs.tsx         التابات الأصلية للموبايل (NativeTabs)
     │   ├── app-tabs.web.tsx     شريط التابات على الويب
-    │   ├── screen.tsx           غلاف موحّد للشاشات + rtlText
+    │   ├── screen.tsx           غلاف موحّد للشاشات
     │   ├── themed-text.tsx      نص بألوان الثيم
     │   ├── themed-view.tsx      View بألوان الثيم
     │   └── mushaf/
     │       ├── mushaf-page.tsx      رسم صفحة واحدة بسطورها الـ 15
-    │       ├── page-pager.tsx       تقليب الصفحات (موبايل — PagerView)
+    │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList أفقية)
     │       └── page-pager.web.tsx   تقليب الصفحات (ويب — أزرار وأسهم)
-    ├── constants/theme.ts       المسافات، الخطوط، اسم خط القرآن، أنواع الألوان
+    ├── constants/
+    │   ├── theme.ts             المسافات، الخطوط، اسم خط القرآن، أنواع الألوان
+    │   └── rtl.ts               قيم الاتجاه (ROW، TEXT_RIGHT، rtlText) حسب لغة الجهاز
     ├── data/quran/
     │   ├── index.ts             تحميل البيانات + دوال مساعدة (السورة، الصفحة، الجزء، الأرقام)
     │   ├── search.ts            البحث وتبسيط النص
@@ -69,7 +71,6 @@ ThemeProvider            (src/theme/ThemeContext.tsx)
 | المكتبة | الاستخدام |
 |---|---|
 | `expo-router` | التنقل والتابات |
-| `react-native-pager-view` | تقليب الصفحات على الموبايل |
 | `@shopify/flash-list` | القوايم الطويلة |
 | `@react-native-async-storage/async-storage` | حفظ الإعدادات والعلامات |
 | `@expo-google-fonts/scheherazade-new` | خط نص القرآن |

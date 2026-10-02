@@ -4,6 +4,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet, Switch, ScrollView } from 'react-native';
 import { themeList, MushafTheme, ThemeMode } from './theme';
 import { useMushafTheme } from './ThemeContext';
+import { ROW, TEXT_RIGHT } from '@/constants/rtl';
 
 function ThemeSwatch({
   t,
@@ -92,9 +93,9 @@ export default function ThemePicker({ children }: { children?: React.ReactNode }
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 16, paddingBottom: 120 },
-  title: { fontSize: 22, fontWeight: '700', textAlign: 'right' },
+  title: { fontSize: 22, fontWeight: '700', textAlign: TEXT_RIGHT },
   systemRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 14,
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
   },
   rowText: { fontSize: 16 },
   grid: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     flexWrap: 'wrap',
     gap: 12,
   },

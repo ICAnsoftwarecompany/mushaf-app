@@ -25,6 +25,7 @@ import {
 } from '@/data/quran';
 import { useReading } from '@/store/reading-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { ROW, rtlText } from '@/constants/rtl';
 
 /** نسبة عرض لارتفاع صفحة المصحف تقريبًا — بنستخدمها على الشاشات العريضة (الويب والتابلت) */
 const PAGE_ASPECT = 0.66;
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
@@ -197,8 +198,8 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     gap: 10,
   },
-  ayahLabel: { fontSize: 15, fontWeight: '600', textAlign: 'right', writingDirection: 'rtl' },
-  ayahActions: { flexDirection: 'row-reverse', gap: 24 },
+  ayahLabel: { fontSize: 15, fontWeight: '600', ...rtlText },
+  ayahActions: { flexDirection: ROW, gap: 24 },
   notice: {
     position: 'absolute',
     bottom: 90,

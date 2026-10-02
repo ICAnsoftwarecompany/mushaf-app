@@ -71,6 +71,8 @@ npx expo start --tunnel
 | `mkdir -p` مش شغال في cmd | على ويندوز اكتبه من غير `-p`: `mkdir src\theme` |
 | Expo Go بيقول إن نسخة المشروع مش متوافقة | حدّث Expo Go من المتجر |
 | التعديلات مش بتظهر | `npx expo start --clear` |
+| صفحة المصحف فاضية على أندرويد | اتصلحت (القارئ بقى بيستخدم FlatList بدل PagerView). اعمل `git pull` و `npm install` و `npx expo start --clear` |
+| ترتيب الكلمات أو المحاذاة مقلوبة لما لغة الموبايل عربي | اتأكد إن الشاشة بتستخدم `ROW` و `rtlText` من `src/constants/rtl.ts` |
 | ميزة محتاجة مكتبة native مش في Expo Go | محتاج development build: `npx expo install expo-dev-client` وبعدين `npx expo run:android` |
 
 ## ملاحظات

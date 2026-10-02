@@ -5,6 +5,7 @@ import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { rtlText } from '@/constants/rtl';
 import { MaxContentWidth } from '@/constants/theme';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
@@ -32,8 +33,6 @@ export function Screen({ title, subtitle, children }: Props) {
     </SafeAreaView>
   );
 }
-
-export const rtlText = { textAlign: 'right', writingDirection: 'rtl' } as const;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },

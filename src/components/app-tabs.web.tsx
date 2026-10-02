@@ -8,6 +8,7 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { ROW } from '@/constants/rtl';
 
 export default function AppTabs() {
   return (
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
     borderRadius: Spacing.five,
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   tabs: {
-    flexDirection: 'row-reverse',
+    flexDirection: ROW,
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: Spacing.one,
