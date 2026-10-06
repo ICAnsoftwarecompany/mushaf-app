@@ -42,3 +42,7 @@ example
 /ios
 /android
 .quran-sources/
+__pycache__/
+scripts/brand/*.tgz
+scripts/brand/expo-google-fonts-*/
+scripts/brand/*.svg

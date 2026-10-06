@@ -1,5 +1,5 @@
 /**
- * الشاشة الافتتاحية: اللوجو + اسم «يتلو» + الآية اللي منها الاسم (البينة ٢).
+ * الشاشة الافتتاحية: اللوجو (اسم «يتلو» بخط الرقعة) + الآية اللي منها الاسم (البينة ٢).
  * بتظهر فوق التطبيق كل مرة يفتح، وبتختفي لوحدها بعد شوية، أو بضغطة.
  * التطبيق بيتحمّل تحتها في نفس الوقت، فمفيش أي تأخير إضافي.
  */
@@ -32,7 +32,7 @@ export function IntroScreen({ onDone }: { onDone: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const logo = Math.min(150, width * 0.36);
+  const logo = Math.min(220, width * 0.52);
   const ayahSize = Math.min(30, width * 0.068);
 
   return (
@@ -51,9 +51,9 @@ export function IntroScreen({ onDone }: { onDone: () => void }) {
             source={require('@/assets/images/splash-icon.png')}
             style={{ width: logo, height: logo }}
             resizeMode="contain"
+            accessibilityLabel={Brand.name}
             accessibilityIgnoresInvertColors
           />
-          <Text style={[styles.name, { fontSize: logo * 0.42 }]}>{Brand.name}</Text>
 
           <Text style={[styles.ayah, { fontSize: ayahSize, lineHeight: ayahSize * 1.9 }]}>
             {`﴿${NAME_AYAH_TEXT}﴾`}
@@ -82,18 +82,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  name: {
-    fontFamily: QuranFont,
-    color: Brand.colors.goldLight,
-    marginTop: 4,
-    textAlign: 'center',
-  },
   ayah: {
     fontFamily: QuranFont,
     color: Brand.colors.cream,
     textAlign: 'center',
     writingDirection: 'rtl',
-    marginTop: 18,
+    marginTop: 8,
   },
   ref: {
     color: Brand.colors.gold,

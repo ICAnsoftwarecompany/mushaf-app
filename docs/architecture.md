@@ -10,6 +10,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── package.json                 المكتبات والأوامر
 ├── docs/                        التوثيق (الفولدر ده)
 ├── scripts/
+│   ├── brand/                   توليد لوجو الاسم كـ SVG (Python + HarfBuzz)
 │   └── build-quran-data.mjs     بيبني بيانات المصحف من المصادر ويتحقق منها
 ├── assets/
 │   ├── brand/                   ملفات اللوجو الأصلية (SVG)
@@ -28,7 +29,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │       └── [page].tsx       القارئ (+ generateStaticParams لبناء الـ 604 صفحة على الويب)
     ├── components/
     │   ├── brand/
-    │   │   └── intro-screen.tsx الشاشة الافتتاحية (اللوجو + آية الاسم)
+    │   │   └── intro-screen.tsx الشاشة الافتتاحية (لوجو الاسم + آية الاسم)
     │   ├── app-tabs.tsx         التابات الأصلية للموبايل (NativeTabs)
     │   ├── app-tabs.web.tsx     شريط التابات على الويب
     │   ├── screen.tsx           غلاف موحّد للشاشات
