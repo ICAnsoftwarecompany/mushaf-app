@@ -3,7 +3,7 @@
     "name": "يتلو",
     "slug": "yatlu",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "yatlu",
     "userInterfaceStyle": "automatic",
@@ -37,6 +37,24 @@
           "backgroundColor": "#1F463D",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 180
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "يتلو بيستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة على جهازك. Yatlu uses your location to calculate prayer times and the qibla on your device."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#1F463D"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
         }
       ]
     ],

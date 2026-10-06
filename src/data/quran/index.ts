@@ -34,14 +34,14 @@ export interface Quarter extends Juz {
   juz: number;
 }
 
-/* eslint-disable @typescript-eslint/no-require-imports */
+ 
 export const ayahs: string[] = require('./ayahs.json');
 export const surahs: Surah[] = require('./surahs.json');
 export const pages: MushafPageData[] = require('./pages.json');
 export const juzList: Juz[] = require('./juz.json');
 export const quarters: Quarter[] = require('./quarters.json');
 export const sajdas: number[] = require('./sajdas.json');
-/* eslint-enable @typescript-eslint/no-require-imports */
+ 
 
 export const TOTAL_PAGES = 604;
 export const TOTAL_AYAHS = 6236;
@@ -128,3 +128,41 @@ export const JUZ_NAMES = [
   'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون', 'السابع والعشرون', 'الثامن والعشرون',
   'التاسع والعشرون', 'الثلاثون',
 ];
+
+// ───────────────────────── الأحزاب والسجدات واللغة ─────────────────────────
+
+const quarterStart = new Map<number, Quarter>();
+for (const q of quarters) quarterStart.set(q.ayahId, q);
+const sajdaSet = new Set(sajdas);
+
+/** لو الآية دي بداية ربع حزب → بيانات الربع */
+export function quarterStartingAt(ayahId: number): Quarter | undefined {
+  return quarterStart.get(ayahId);
+}
+
+export function isSajda(ayahId: number): boolean {
+  return sajdaSet.has(ayahId);
+}
+
+/** أرباع الأحزاب اللي بتبدأ في الصفحة */
+export function quartersOnPage(page: number): Quarter[] {
+  return quarters.filter((q) => q.page === page);
+}
+
+export function surahLabel(s: Surah, lang: 'ar' | 'en'): string {
+  return lang === 'ar' ? s.name : s.nameEn;
+}
+
+export function juzLabel(id: number, lang: 'ar' | 'en'): string {
+  return lang === 'ar' ? `الجزء ${JUZ_NAMES[id - 1]}` : `Juz ${id}`;
+}
+
+/** «ربع الحزب ٣» … حسب موضع الربع (1..4) */
+export function quarterLabel(q: Quarter, lang: 'ar' | 'en'): string {
+  const pos = (q.id - 1) % 4;
+  const n = lang === 'ar' ? toArabicDigits(q.hizb) : String(q.hizb);
+  if (pos === 0) return lang === 'ar' ? `الحزب ${n}` : `Hizb ${n}`;
+  const ar = ['', 'ربع', 'نصف', 'ثلاثة أرباع'][pos];
+  const en = ['', '¼', '½', '¾'][pos];
+  return lang === 'ar' ? `${ar} الحزب ${n}` : `${en} Hizb ${n}`;
+}

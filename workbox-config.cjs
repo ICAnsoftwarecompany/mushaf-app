@@ -2,7 +2,7 @@
 // بيحفظ ملفات التطبيق والخط وبيانات المصحف في المتصفح، فالموقع يشتغل من غير إنترنت بعد أول زيارة.
 module.exports = {
   globDirectory: 'dist/',
-  globPatterns: ['**/*.{js,css,ttf,woff,woff2,png,ico,json}', 'index.html', '+not-found.html', 'search.html', 'bookmarks.html', 'settings.html'],
+  globPatterns: ['**/*.{js,css,ttf,woff,woff2,png,ico,json,ytd}', 'index.html', '+not-found.html', 'search.html', 'bookmarks.html', 'settings.html', 'prayer.html', 'azkar.html', 'qibla.html', 'tasbih.html', 'city.html', 'goto.html', 'about.html', 'privacy.html', 'method.html', 'reciter.html'],
   globIgnores: ['sw.js', 'workbox-*.js'],
   maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
   swDest: 'dist/sw.js',

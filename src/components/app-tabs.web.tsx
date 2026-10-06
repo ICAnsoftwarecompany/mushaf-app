@@ -4,87 +4,75 @@
 import { Tabs, TabList, TabTrigger, TabSlot, TabTriggerSlotProps, TabListProps } from 'expo-router/ui';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
-
+import { Icon, type IconName, Txt } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { ROW } from '@/constants/rtl';
+import { useI18n } from '@/i18n';
+import { useMushafTheme } from '@/theme/ThemeContext';
+
+const TABS: { name: string; href: '/' | '/prayer' | '/azkar' | '/search' | '/settings'; label: 'tabMushaf' | 'tabPrayer' | 'tabAzkar' | 'tabSearch' | 'tabSettings'; icon: IconName }[] = [
+  { name: 'index', href: '/', label: 'tabMushaf', icon: 'book' },
+  { name: 'prayer', href: '/prayer', label: 'tabPrayer', icon: 'clock' },
+  { name: 'azkar', href: '/azkar', label: 'tabAzkar', icon: 'sparkles' },
+  { name: 'search', href: '/search', label: 'tabSearch', icon: 'search' },
+  { name: 'settings', href: '/settings', label: 'tabSettings', icon: 'gear' },
+];
 
 export default function AppTabs() {
+  const { t } = useI18n();
   return (
     <Tabs>
+      <TabSlot style={{ flex: 1 }} />
       <TabList asChild>
         <CustomTabList>
-          <TabTrigger name="index" href="/" asChild>
-            <TabButton>المصحف</TabButton>
-          </TabTrigger>
-          <TabTrigger name="search" href="/search" asChild>
-            <TabButton>البحث</TabButton>
-          </TabTrigger>
-          <TabTrigger name="bookmarks" href="/bookmarks" asChild>
-            <TabButton>العلامات</TabButton>
-          </TabTrigger>
-          <TabTrigger name="settings" href="/settings" asChild>
-            <TabButton>الإعدادات</TabButton>
-          </TabTrigger>
+          {TABS.map((tab) => (
+            <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
+              <TabButton icon={tab.icon}>{t(tab.label)}</TabButton>
+            </TabTrigger>
+          ))}
         </CustomTabList>
       </TabList>
-      <TabSlot style={{ flex: 1 }} />
     </Tabs>
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+export function TabButton({ children, isFocused, icon, ...props }: TabTriggerSlotProps & { icon: IconName }) {
+  const { theme } = useMushafTheme();
+  const c = theme.colors;
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView type={isFocused ? 'backgroundSelected' : 'backgroundElement'} style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'accent' : 'textSecondary'}>
-          {children}
-        </ThemedText>
-      </ThemedView>
+    <Pressable {...props} style={({ pressed }) => [styles.tab, pressed && styles.pressed]}>
+      <View style={[styles.pill, isFocused && { backgroundColor: c.highlight }]}>
+        <Icon name={icon} size={22} color={isFocused ? c.accent : c.textSecondary} />
+      </View>
+      <Txt size={11} weight={isFocused ? 'bold' : 'normal'} color={isFocused ? 'accent' : 'textSecondary'} align="center">
+        {children as string}
+      </Txt>
     </Pressable>
   );
 }
 
 export function CustomTabList(props: TabListProps) {
+  const { theme } = useMushafTheme();
+  const { dir } = useI18n();
   return (
-    <ThemedView {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <View style={styles.tabs}>{props.children}</View>
-      </ThemedView>
-    </ThemedView>
+    <View {...props} style={[styles.bar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+      <View style={[styles.inner, { flexDirection: dir.row }]}>{props.children}</View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tabListContainer: {
+  bar: {
     width: '100%',
-    padding: Spacing.three,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: Spacing.one,
     alignItems: 'center',
   },
-  innerContainer: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.five,
-    flexDirection: ROW,
-    alignItems: 'center',
-    justifyContent: 'center',
+  inner: {
     width: '100%',
     maxWidth: MaxContentWidth,
-    gap: Spacing.two,
+    justifyContent: 'space-around',
   },
-  tabs: {
-    flexDirection: ROW,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: Spacing.one,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  tabButtonView: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-  },
+  tab: { alignItems: 'center', gap: 2, paddingVertical: 2, minWidth: 64 },
+  pill: { paddingHorizontal: 16, paddingVertical: 3, borderRadius: 14 },
+  pressed: { opacity: 0.7 },
 });

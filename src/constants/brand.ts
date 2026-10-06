@@ -24,3 +24,13 @@ export const NAME_SURAH = 98;
 export const NAME_AYAH = 2;
 /** النص من ayahs.json زي ما هو (القاعدة 1: ممنوع كتابة نص قرآني بالإيد) */
 export const NAME_AYAH_TEXT = ayahs[getSurah(NAME_SURAH).firstAyah + NAME_AYAH - 2];
+
+/** روابط «عن التطبيق» — املاها قبل النشر (docs/brand.md) */
+export const LINKS = {
+  website: 'https://yatlu.app',
+  /** إيميل الدعم — فاضي = زرار «تواصل معنا» مش هيظهر */
+  contactEmail: '',
+  /** رقم التطبيق في App Store بعد النشر (للتقييم على iOS) */
+  appStoreId: '',
+  androidPackage: 'com.icansoftware.yatlu',
+};

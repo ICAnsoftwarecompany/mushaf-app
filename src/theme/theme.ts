@@ -22,6 +22,7 @@ export interface TajweedColors {
 export interface MushafTheme {
   id: ThemeId;
   name: string;            // الاسم اللي يظهر للمستخدم
+  nameEn: string;
   isDark: boolean;
   colors: {
     background: string;    // خلفية الصفحة
@@ -56,6 +57,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   classic: {
     id: 'classic',
     name: 'كلاسيك',
+    nameEn: 'Classic',
     isDark: false,
     colors: {
       background: '#FDF6E3',
@@ -74,6 +76,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   white: {
     id: 'white',
     name: 'أبيض',
+    nameEn: 'White',
     isDark: false,
     colors: {
       background: '#FAFAF7',
@@ -92,6 +95,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   sepia: {
     id: 'sepia',
     name: 'سيبيا',
+    nameEn: 'Sepia',
     isDark: false,
     colors: {
       background: '#F1E7D0',
@@ -110,6 +114,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   mint: {
     id: 'mint',
     name: 'أخضر هادي',
+    nameEn: 'Mint',
     isDark: false,
     colors: {
       background: '#EEF5EE',
@@ -128,6 +133,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   night: {
     id: 'night',
     name: 'ليلي',
+    nameEn: 'Night',
     isDark: true,
     colors: {
       background: '#1A1A1A',
@@ -146,6 +152,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   navy: {
     id: 'navy',
     name: 'كحلي',
+    nameEn: 'Navy',
     isDark: true,
     colors: {
       background: '#141B26',
@@ -164,6 +171,7 @@ export const themes: Record<ThemeId, MushafTheme> = {
   oled: {
     id: 'oled',
     name: 'أسود',
+    nameEn: 'Black',
     isDark: true,
     colors: {
       background: '#000000',

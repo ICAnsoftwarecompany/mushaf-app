@@ -1,34 +1,46 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { IS_RTL_LAYOUT } from '@/constants/rtl';
 
 import { useTheme } from '@/hooks/use-theme';
+import { useI18n } from '@/i18n';
 
+/** التابات الأصلية (أندرويد و iOS). في العربي بتترتب من اليمين. */
 export default function AppTabs() {
   const colors = useTheme();
+  const { t, dir } = useI18n();
+
+  const tabs = [
+    <NativeTabs.Trigger key="index" name="index">
+      <NativeTabs.Trigger.Label>{t('tabMushaf')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger.Icon sf="book.fill" md="menu_book" />
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="prayer" name="prayer">
+      <NativeTabs.Trigger.Label>{t('tabPrayer')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger.Icon sf="clock.fill" md="schedule" />
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="azkar" name="azkar">
+      <NativeTabs.Trigger.Label>{t('tabAzkar')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger.Icon sf="sparkles" md="auto_awesome" />
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="search" name="search">
+      <NativeTabs.Trigger.Label>{t('tabSearch')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="settings" name="settings">
+      <NativeTabs.Trigger.Label>{t('tabSettings')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger.Icon sf="gearshape.fill" md="settings" />
+    </NativeTabs.Trigger>,
+  ];
+
+  // شريط التابات بيتبع اتجاه الجهاز؛ لو مختلف عن اتجاه اللغة نعكس الترتيب
+  const ordered = dir.rtl !== IS_RTL_LAYOUT ? [...tabs].reverse() : tabs;
 
   return (
     <NativeTabs
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundSelected}
       labelStyle={{ selected: { color: colors.accent } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>المصحف</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="book.fill" md="menu_book" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="search">
-        <NativeTabs.Trigger.Label>البحث</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="bookmarks">
-        <NativeTabs.Trigger.Label>العلامات</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="bookmark.fill" md="bookmark" />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Label>الإعدادات</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="gearshape.fill" md="settings" />
-      </NativeTabs.Trigger>
+      {ordered}
     </NativeTabs>
   );
 }

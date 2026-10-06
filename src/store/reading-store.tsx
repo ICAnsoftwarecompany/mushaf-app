@@ -1,5 +1,5 @@
 /**
- * حالة القراءة: آخر صفحة اتقرت + العلامات المحفوظة.
+ * حالة القراءة: آخر صفحة اتقرت + العلامات المحفوظة + الختمة والورد اليومي.
  * كله بيتخزن على الجهاز (أوفلاين) بـ AsyncStorage.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,19 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 
 const LAST_READ_KEY = 'mushaf.lastRead';
 const BOOKMARKS_KEY = 'mushaf.bookmarks';
+const KHATMA_KEY = 'yatlu.khatma';
+
+/** الختمة والورد اليومي */
+export interface Khatma {
+  nextPage: number; // أول صفحة في ورد النهارده (605 = الختمة خلصت)
+  startedAt: number;
+  lastDoneDay: string | null; // "YYYY-MM-DD"
+  completed: number; // عدد الختمات اللي خلصت
+}
+
+const NEW_KHATMA = (): Khatma => ({ nextPage: 1, startedAt: Date.now(), lastDoneDay: null, completed: 0 });
+export const todayKey = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export interface LastRead {
   page: number;
@@ -28,6 +41,12 @@ interface ReadingContextValue {
   togglePageBookmark: (page: number) => void;
   addAyahBookmark: (ayahId: number, page: number) => void;
   removeBookmark: (id: string) => void;
+  khatma: Khatma;
+  markWirdDone: (pagesPerDay: number) => void;
+  newKhatma: () => void;
+  /** للنسخ الاحتياطي */
+  exportData: () => { lastRead: LastRead | null; bookmarks: Bookmark[]; khatma: Khatma };
+  importData: (d: { lastRead?: LastRead | null; bookmarks?: Bookmark[]; khatma?: Khatma }) => void;
   ready: boolean;
 }
 
@@ -40,18 +59,21 @@ function persist(key: string, value: unknown) {
 export function ReadingProvider({ children }: { children: React.ReactNode }) {
   const [lastRead, setLastRead] = useState<LastRead | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [khatma, setKhatma] = useState<Khatma>(NEW_KHATMA);
   const [ready, setReady] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [lr, bm] = await Promise.all([
+        const [lr, bm, kh] = await Promise.all([
           AsyncStorage.getItem(LAST_READ_KEY),
           AsyncStorage.getItem(BOOKMARKS_KEY),
+          AsyncStorage.getItem(KHATMA_KEY),
         ]);
         if (lr) setLastRead(JSON.parse(lr));
         if (bm) setBookmarks(JSON.parse(bm));
+        if (kh) setKhatma({ ...NEW_KHATMA(), ...JSON.parse(kh) });
       } catch {
         // نكمل بالقيم الفاضية
       } finally {
@@ -106,6 +128,45 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
     [updateBookmarks]
   );
 
+  const markWirdDone = useCallback((pagesPerDay: number) => {
+    setKhatma((k) => {
+      const next = {
+        ...k,
+        nextPage: Math.min(605, k.nextPage + pagesPerDay),
+        lastDoneDay: todayKey(),
+      };
+      if (next.nextPage >= 605) next.completed = k.completed + 1;
+      persist(KHATMA_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const newKhatma = useCallback(() => {
+    setKhatma((k) => {
+      const next = { ...NEW_KHATMA(), completed: k.completed };
+      persist(KHATMA_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const exportData = useCallback(() => ({ lastRead, bookmarks, khatma }), [lastRead, bookmarks, khatma]);
+
+  const importData = useCallback((d: { lastRead?: LastRead | null; bookmarks?: Bookmark[]; khatma?: Khatma }) => {
+    if (d.lastRead !== undefined) {
+      setLastRead(d.lastRead);
+      persist(LAST_READ_KEY, d.lastRead);
+    }
+    if (Array.isArray(d.bookmarks)) {
+      setBookmarks(d.bookmarks);
+      persist(BOOKMARKS_KEY, d.bookmarks);
+    }
+    if (d.khatma) {
+      const k = { ...NEW_KHATMA(), ...d.khatma };
+      setKhatma(k);
+      persist(KHATMA_KEY, k);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       lastRead,
@@ -115,9 +176,14 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
       togglePageBookmark,
       addAyahBookmark,
       removeBookmark,
+      khatma,
+      markWirdDone,
+      newKhatma,
+      exportData,
+      importData,
       ready,
     }),
-    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, ready]
+    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, exportData, importData, ready]
   );
 
   return <ReadingContext.Provider value={value}>{children}</ReadingContext.Provider>;

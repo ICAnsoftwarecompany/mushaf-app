@@ -74,10 +74,26 @@ npx expo start --tunnel
 | Expo Go بيقول إن نسخة المشروع مش متوافقة | حدّث Expo Go من المتجر |
 | التعديلات مش بتظهر | `npx expo start --clear` |
 | صفحة المصحف فاضية على أندرويد | اتصلحت (القارئ بقى بيستخدم FlatList بدل PagerView). اعمل `git pull` و `npm install` و `npx expo start --clear` |
-| ترتيب الكلمات أو المحاذاة مقلوبة لما لغة الموبايل عربي | اتأكد إن الشاشة بتستخدم `ROW` و `rtlText` من `src/constants/rtl.ts` |
+| ترتيب الكلمات أو المحاذاة مقلوبة | اتأكد إن الشاشة بتستخدم `Row` و `Txt` من `src/components/ui` أو `useI18n().dir` (شوف [i18n.md](i18n.md)) |
+| الإشعارات أو التلاوة في الخلفية مش شغالة في Expo Go | جرّب على development build (`npx expo run:android`) |
+| `npx expo install` بيفشل بسبب الشبكة | `npm install <pkg>@<النسخة>` بالنسخة اللي في `node_modules/expo/bundledNativeModules.json` |
 | ميزة محتاجة مكتبة native مش في Expo Go | محتاج development build: `npx expo install expo-dev-client` وبعدين `npx expo run:android` |
 
 ## ملاحظات
 
 - **متشغّلش `reset-project`**. السكربت ده كان جاي مع قالب Expo واتشال، لأنه بيمسح شاشات التطبيق.
 - فولدر `.quran-sources/` بيتعمل لما تبني البيانات، ومتجاهل في git.
+
+## الفحص قبل الكوميت
+
+```bash
+npx tsc --noEmit        # TypeScript
+npx expo lint           # ESLint (قواعد React Compiler)
+npm test                # اختبارات البيانات (node --test)
+```
+
+## إعادة بناء البيانات الإضافية
+
+```bash
+npm run build:extra-data   # محتاج إنترنت أول مرة (بيحمّل المصادر في .quran-sources/extra)
+```

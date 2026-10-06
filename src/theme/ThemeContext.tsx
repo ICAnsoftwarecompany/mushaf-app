@@ -2,6 +2,9 @@
 // بيحفظ اختيار المستخدم على الموبايل (أوفلاين) ويطبقه في كل التطبيق
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme, StatusBar } from 'react-native';
+
+import { isNight } from '@/features/prayer/prayer';
+import { useSettings } from '@/store/settings-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   themes,
@@ -62,12 +65,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(TAJWEED_KEY, v ? '1' : '0').catch(() => {});
   };
 
+  // الوضع الليلي التلقائي بالمواقيت: بنعيد الحساب كل دقيقة
+  const { settings } = useSettings();
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!settings.nightByPrayer) return;
+    const id = setInterval(() => setTick((t) => t + 1), 60 * 1000);
+    return () => clearInterval(id);
+  }, [settings.nightByPrayer]);
+  const night = settings.nightByPrayer ? isNight(settings) : null;
+
   const theme = useMemo(() => {
-    if (mode === 'system') {
-      return themes[systemScheme === 'dark' ? SYSTEM_DARK : SYSTEM_LIGHT];
-    }
-    return themes[mode];
-  }, [mode, systemScheme]);
+    const chosen = mode === 'system' ? themes[systemScheme === 'dark' ? SYSTEM_DARK : SYSTEM_LIGHT] : themes[mode];
+    if (night === true && !chosen.isDark) return themes[SYSTEM_DARK];
+    if (night === false && chosen.isDark && mode === 'system') return themes[SYSTEM_LIGHT];
+    return chosen;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, systemScheme, night, tick]);
 
   const value = useMemo(
     () => ({ theme, mode, setMode, tajweedEnabled, setTajweedEnabled, ready }),

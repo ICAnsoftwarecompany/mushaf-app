@@ -18,6 +18,7 @@ export type ThemeColor =
 
 /** خط نص القرآن (Scheherazade New — رخصة OFL) — بيتحمّل في src/app/_layout.tsx */
 export const QuranFont = 'ScheherazadeNew_400Regular';
+export const QuranFontBold = 'ScheherazadeNew_700Bold';
 
 export const Fonts = Platform.select({
   ios: {

@@ -1,30 +1,28 @@
 /**
- * تقليب الصفحات على الويب (PagerView مش بيشتغل على الويب):
- * أزرار + أسهم الكيبورد. السهم الشمال = الصفحة الجاية زي المصحف.
+ * تقليب الصفحات على الويب: أزرار في الركنين + أسهم الكيبورد.
+ * السهم الشمال = الصفحة الجاية زي المصحف.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { TOTAL_PAGES } from '@/data/quran';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
 import type { PagePagerProps } from './page-pager';
 
-export function PagePager({ initialPage, onPageChange, renderPage }: PagePagerProps) {
-  const [page, setPage] = useState(initialPage);
+export function PagePager({ count, index, onIndexChange, renderItem }: PagePagerProps) {
   const { theme } = useMushafTheme();
 
-  const go = (p: number) => {
-    const next = Math.min(TOTAL_PAGES, Math.max(1, p));
-    if (next === page) return;
-    setPage(next);
-    onPageChange(next);
+  const go = (i: number) => {
+    const next = Math.min(count, Math.max(1, i));
+    if (next !== index) onIndexChange(next);
   };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') go(page + 1);
-      if (e.key === 'ArrowRight') go(page - 1);
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') go(index + 1);
+      if (e.key === 'ArrowRight') go(index - 1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -32,19 +30,19 @@ export function PagePager({ initialPage, onPageChange, renderPage }: PagePagerPr
 
   return (
     <View style={styles.container}>
-      <View style={styles.page}>{renderPage(page)}</View>
+      <View style={styles.page}>{renderItem(index)}</View>
       <Pressable
-        onPress={() => go(page + 1)}
-        disabled={page === TOTAL_PAGES}
-        accessibilityLabel="الصفحة التالية"
-        style={[styles.arrow, styles.left, { backgroundColor: theme.colors.surface, opacity: page === TOTAL_PAGES ? 0.3 : 0.9 }]}>
+        onPress={() => go(index + 1)}
+        disabled={index === count}
+        accessibilityLabel="next"
+        style={[styles.arrow, styles.left, { backgroundColor: theme.colors.surface, opacity: index === count ? 0.3 : 0.9 }]}>
         <Text style={[styles.arrowText, { color: theme.colors.accent }]}>‹</Text>
       </Pressable>
       <Pressable
-        onPress={() => go(page - 1)}
-        disabled={page === 1}
-        accessibilityLabel="الصفحة السابقة"
-        style={[styles.arrow, styles.right, { backgroundColor: theme.colors.surface, opacity: page === 1 ? 0.3 : 0.9 }]}>
+        onPress={() => go(index - 1)}
+        disabled={index === 1}
+        accessibilityLabel="previous"
+        style={[styles.arrow, styles.right, { backgroundColor: theme.colors.surface, opacity: index === 1 ? 0.3 : 0.9 }]}>
         <Text style={[styles.arrowText, { color: theme.colors.accent }]}>›</Text>
       </Pressable>
     </View>
@@ -52,7 +50,7 @@ export function PagePager({ initialPage, onPageChange, renderPage }: PagePagerPr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, alignSelf: 'stretch' },
   page: { flex: 1, alignItems: 'center' },
   arrow: {
     position: 'absolute',

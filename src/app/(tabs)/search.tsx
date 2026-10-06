@@ -4,42 +4,48 @@
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import React, { useDeferredValue, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
-import { rtlText } from '@/constants/rtl';
-import { BottomTabInset, QuranFont } from '@/constants/theme';
-import { ayahNumber, ayahs, pageOfAyah, surahOfAyah, toArabicDigits } from '@/data/quran';
+import { Txt } from '@/components/ui';
+import { BottomTabInset } from '@/constants/theme';
+import { ayahNumber, ayahs, pageOfAyah, surahLabel, surahOfAyah } from '@/data/quran';
 import { searchQuran } from '@/data/quran/search';
+import { ARABIC_DIR, useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
 export default function SearchScreen() {
   const { theme } = useMushafTheme();
+  const { t, lang } = useI18n();
   const c = theme.colors;
   const [query, setQuery] = useState('');
   const deferred = useDeferredValue(query);
   const { results, total } = useMemo(() => searchQuran(deferred), [deferred]);
 
   return (
-    <Screen title="البحث" subtitle="ابحث بكلمة أو جزء من آية">
+    <Screen title={t('tabSearch')} subtitle={t('searchSubtitle')}>
       <View style={styles.inputWrap}>
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="مثال: الرحمن الرحيم"
+          placeholder={t('searchPlaceholder')}
           placeholderTextColor={c.textSecondary}
           autoCorrect={false}
           returnKeyType="search"
-          style={[styles.input, { color: c.text, backgroundColor: c.surface, borderColor: c.border }]}
+          accessibilityLabel={t('tabSearch')}
+          style={[
+            styles.input,
+            { color: c.text, backgroundColor: c.surface, borderColor: c.border, textAlign: ARABIC_DIR.start, writingDirection: 'rtl' },
+          ]}
         />
         {deferred.trim().length >= 2 && (
-          <Text style={[styles.count, { color: c.textSecondary }]}>
+          <Txt size={13} color="textSecondary">
             {total === 0
-              ? 'مفيش نتائج'
+              ? t('noResults')
               : total > results.length
-                ? `${toArabicDigits(total)} نتيجة (أول ${toArabicDigits(results.length)})`
-                : `${toArabicDigits(total)} نتيجة`}
-          </Text>
+                ? t('resultsCountLimited', { n: total, m: results.length })
+                : t('resultsCount', { n: total })}
+          </Txt>
         )}
       </View>
 
@@ -50,16 +56,18 @@ export default function SearchScreen() {
         contentContainerStyle={styles.list}
         renderItem={({ item: id }) => (
           <Pressable
-            onPress={() =>
-              router.push({ pathname: '/mushaf/[page]', params: { page: String(pageOfAyah(id)), ayah: String(id) } })
-            }
-            style={({ pressed }) => [styles.result, { borderColor: c.border }, pressed && { backgroundColor: c.highlight }]}>
-            <Text style={[styles.ref, { color: c.accent }]}>
-              {`${surahOfAyah(id).name} · آية ${toArabicDigits(ayahNumber(id))} · صفحة ${toArabicDigits(pageOfAyah(id))}`}
-            </Text>
-            <Text style={[styles.ayah, { color: c.text }]} numberOfLines={3}>
-              {ayahs[id - 1]}
-            </Text>
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: '/mushaf/[page]', params: { page: String(pageOfAyah(id)), ayah: String(id) } })}>
+            {({ pressed }) => (
+              <View style={[styles.result, { borderColor: c.border }, pressed ? { backgroundColor: c.highlight } : null]}>
+                <Txt size={13} weight="medium" color="accent">
+                  {`${surahLabel(surahOfAyah(id), lang)} · ${t('ayahN', { n: ayahNumber(id) })} · ${t('pageN', { n: pageOfAyah(id) })}`}
+                </Txt>
+                <Txt quran size={21} numberOfLines={3}>
+                  {ayahs[id - 1]}
+                </Txt>
+              </View>
+            )}
           </Pressable>
         )}
       />
@@ -69,17 +77,7 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   inputWrap: { paddingHorizontal: 16, gap: 6, paddingBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 17,
-    ...rtlText,
-  },
-  count: { fontSize: 13, ...rtlText },
+  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 17 },
   list: { paddingBottom: BottomTabInset + 24 },
   result: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, gap: 4 },
-  ref: { fontSize: 13, fontWeight: '600', ...rtlText },
-  ayah: { fontFamily: QuranFont, fontSize: 21, lineHeight: 38, ...rtlText },
 });

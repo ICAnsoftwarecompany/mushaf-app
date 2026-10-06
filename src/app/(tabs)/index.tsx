@@ -1,80 +1,70 @@
 /**
- * الفهرس: متابعة القراءة + السور + الأجزاء
+ * تاب المصحف: متابعة القراءة + الورد اليومي + السور / الأجزاء / الأحزاب
  */
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Screen } from '@/components/screen';
-import { ROW, TEXT_LEFT, rtlText } from '@/constants/rtl';
+import { HeaderButton, Screen } from '@/components/screen';
+import { Btn, Card, Row, Segmented, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
-import {
-  getSurah,
-  JUZ_NAMES,
-  juzList,
-  type Juz,
-  type Surah,
-  surahs,
-  surahsOfPage,
-  toArabicDigits,
-} from '@/data/quran';
-import { useReading } from '@/store/reading-store';
+import { getSurah, juzLabel, juzList, type Juz, quarterLabel, quarters, type Surah, surahLabel, surahs, surahsOfPage } from '@/data/quran';
+import { useI18n } from '@/i18n';
+import { todayKey, useReading } from '@/store/reading-store';
+import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
-type Tab = 'surahs' | 'juz';
+type Tab = 'surahs' | 'juz' | 'hizb';
 
-const openPage = (page: number) => router.push({ pathname: '/mushaf/[page]', params: { page: String(page) } });
+export const openPage = (page: number, ayah?: number) =>
+  router.push({ pathname: '/mushaf/[page]', params: ayah ? { page: String(page), ayah: String(ayah) } : { page: String(page) } });
+
+const hizbStarts = quarters.filter((q) => (q.id - 1) % 4 === 0);
 
 export default function IndexScreen() {
-  const { theme } = useMushafTheme();
-  const c = theme.colors;
-  const { lastRead } = useReading();
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<Tab>('surahs');
 
   const header = (
     <View style={styles.headerBlock}>
-      {lastRead && (
-        <Pressable
-          onPress={() => openPage(lastRead.page)}
-          style={[styles.continueCard, { backgroundColor: c.surface, borderColor: c.accent }]}>
-          <Text style={[styles.continueLabel, { color: c.textSecondary }]}>متابعة القراءة</Text>
-          <Text style={[styles.continueTitle, { color: c.text }]}>
-            {`سورة ${surahsOfPage(lastRead.page)[0].name}`}
-          </Text>
-          <Text style={[styles.continueMeta, { color: c.accent }]}>{`صفحة ${toArabicDigits(lastRead.page)}`}</Text>
-        </Pressable>
-      )}
-
-      <View style={[styles.segment, { backgroundColor: c.surface, borderColor: c.border }]}>
-        {(['surahs', 'juz'] as const).map((t) => (
-          <Pressable
-            key={t}
-            onPress={() => setTab(t)}
-            style={[styles.segmentItem, tab === t && { backgroundColor: c.background, borderColor: c.accent }]}>
-            <Text style={{ color: tab === t ? c.accent : c.textSecondary, fontWeight: '600' }}>
-              {t === 'surahs' ? 'السور' : 'الأجزاء'}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <ContinueCard />
+      <WirdCard />
+      <Segmented
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: 'surahs', label: t('surahs') },
+          { value: 'juz', label: t('juzs') },
+          { value: 'hizb', label: t('ahzab') },
+        ]}
+      />
     </View>
   );
 
   return (
-    <Screen title="يتلو" subtitle="المصحف الشريف · رواية حفص عن عاصم · مصحف المدينة">
-      {tab === 'surahs' ? (
+    <Screen
+      title={t('appName')}
+      subtitle={t('indexSubtitle')}
+      actions={
+        <>
+          <HeaderButton icon="goto" label={t('goTo')} onPress={() => router.push('/goto')} />
+          <HeaderButton icon="bookmark" label={t('bookmarks')} onPress={() => router.push('/bookmarks')} />
+        </>
+      }>
+      {tab === 'surahs' && (
         <FlashList
-          key="surahs"
+          key="s"
           data={surahs}
           keyExtractor={(s) => String(s.id)}
           ListHeaderComponent={header}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <SurahRow surah={item} />}
         />
-      ) : (
+      )}
+      {tab === 'juz' && (
         <FlashList
-          key="juz"
+          key="j"
           data={juzList}
           keyExtractor={(j) => String(j.id)}
           ListHeaderComponent={header}
@@ -82,91 +72,173 @@ export default function IndexScreen() {
           renderItem={({ item }) => <JuzRow juz={item} />}
         />
       )}
+      {tab === 'hizb' && (
+        <FlashList
+          key="h"
+          data={hizbStarts}
+          keyExtractor={(q) => String(q.id)}
+          ListHeaderComponent={header}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <ListRow
+              n={item.hizb}
+              title={quarterLabel(item, lang)}
+              meta={t('startsAt', { surah: surahLabel(getSurah(item.surah), lang), ayah: item.ayah })}
+              page={item.page}
+              onPress={() => openPage(item.page, item.ayahId)}
+            />
+          )}
+        />
+      )}
     </Screen>
+  );
+}
+
+function ContinueCard() {
+  const { t, lang } = useI18n();
+  const { lastRead } = useReading();
+  const { theme } = useMushafTheme();
+  if (!lastRead) return null;
+  const s = surahsOfPage(lastRead.page)[0];
+  return (
+    <Pressable onPress={() => openPage(lastRead.page)} accessibilityRole="button">
+      {({ pressed }) => (
+        <Card style={{ borderColor: theme.colors.accent, opacity: pressed ? 0.8 : 1, gap: 4 }}>
+          <Txt size={13} color="textSecondary">
+            {t('continueReading')}
+          </Txt>
+          <Txt size={20} weight="bold">
+            {t('surahName', { name: surahLabel(s, lang) })}
+          </Txt>
+          <Txt size={14} weight="medium" color="accent">
+            {t('pageN', { n: lastRead.page })}
+          </Txt>
+        </Card>
+      )}
+    </Pressable>
+  );
+}
+
+function WirdCard() {
+  const { t } = useI18n();
+  const { khatma, markWirdDone, newKhatma } = useReading();
+  const { settings } = useSettings();
+  const { theme } = useMushafTheme();
+  const per = settings.wirdPagesPerDay;
+  const from = khatma.nextPage;
+  const finished = from > 604;
+  const to = Math.min(604, from + per - 1);
+  const doneToday = khatma.lastDoneDay === todayKey();
+  const progress = Math.round(((Math.min(from, 605) - 1) / 604) * 100);
+  const daysLeft = Math.ceil((605 - from) / per);
+
+  return (
+    <Card style={{ gap: 8 }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Txt size={15} weight="bold">
+          {t('dailyWird')}
+        </Txt>
+        <Txt size={13} color="accent" weight="medium">
+          {t('khatmaProgress', { p: progress })}
+        </Txt>
+      </Row>
+      <View style={[styles.progress, { backgroundColor: theme.colors.border }]}>
+        <View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: theme.colors.accent }]} />
+      </View>
+      {finished ? (
+        <>
+          <Txt size={14}>{t('khatmaDone')}</Txt>
+          <Btn title={t('newKhatma')} onPress={newKhatma} />
+        </>
+      ) : doneToday ? (
+        <Txt size={14} color="textSecondary">
+          {`${t('wirdDone')} · ${t('daysLeft', { n: daysLeft })}`}
+        </Txt>
+      ) : (
+        <>
+          <Txt size={14} color="textSecondary">
+            {`${t('wirdTodayRange', { from, to })} · ${t('daysLeft', { n: daysLeft })}`}
+          </Txt>
+          <Row style={{ gap: 8 }}>
+            <Btn title={t('startWird')} icon="book" onPress={() => openPage(from)} style={{ flex: 1 }} />
+            <Btn title={t('markWirdDone')} icon="check" kind="secondary" onPress={() => markWirdDone(per)} style={{ flex: 1 }} />
+          </Row>
+        </>
+      )}
+    </Card>
   );
 }
 
 function NumberBadge({ n }: { n: number }) {
   const { theme } = useMushafTheme();
+  const { num } = useI18n();
   return (
     <View style={[styles.badge, { borderColor: theme.colors.accent }]}>
-      <Text style={{ color: theme.colors.accent, fontWeight: '700', fontSize: 13 }}>{toArabicDigits(n)}</Text>
+      <Txt size={13} weight="bold" color="accent" align="center">
+        {num(n)}
+      </Txt>
     </View>
   );
 }
 
-function SurahRow({ surah }: { surah: Surah }) {
+function ListRow({ n, title, meta, page, onPress }: { n: number; title: string; meta: string; page: number; onPress: () => void }) {
   const { theme } = useMushafTheme();
+  const { num } = useI18n();
   const c = theme.colors;
   return (
-    <Pressable
-      onPress={() => openPage(surah.page)}
-      style={({ pressed }) => [styles.row, { borderColor: c.border }, pressed && { backgroundColor: c.highlight }]}>
-      <NumberBadge n={surah.id} />
-      <View style={styles.rowText}>
-        <Text style={[styles.rowTitle, { color: c.text }]}>{surah.name}</Text>
-        <Text style={[styles.rowMeta, { color: c.textSecondary }]}>
-          {`${surah.type === 'meccan' ? 'مكية' : 'مدنية'} · ${toArabicDigits(surah.ayahs)} آية`}
-        </Text>
-      </View>
-      <Text style={[styles.page, { color: c.textSecondary }]}>{toArabicDigits(surah.page)}</Text>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={title}>
+      {({ pressed }) => (
+        <Row style={[styles.row, { borderColor: c.border }, pressed ? { backgroundColor: c.highlight } : {}]}>
+          <NumberBadge n={n} />
+          <View style={styles.rowText}>
+            <Txt size={17} weight="medium">
+              {title}
+            </Txt>
+            <Txt size={13} color="textSecondary">
+              {meta}
+            </Txt>
+          </View>
+          <Txt size={14} color="textSecondary" align="end" style={{ minWidth: 32 }}>
+            {num(page)}
+          </Txt>
+        </Row>
+      )}
     </Pressable>
   );
 }
 
-function JuzRow({ juz }: { juz: Juz }) {
-  const { theme } = useMushafTheme();
-  const c = theme.colors;
+function SurahRow({ surah }: { surah: Surah }) {
+  const { t, lang } = useI18n();
   return (
-    <Pressable
+    <ListRow
+      n={surah.id}
+      title={surahLabel(surah, lang)}
+      meta={`${surah.type === 'meccan' ? t('meccan') : t('medinan')} · ${t('ayahsCount', { n: surah.ayahs })}`}
+      page={surah.page}
+      onPress={() => openPage(surah.page)}
+    />
+  );
+}
+
+function JuzRow({ juz }: { juz: Juz }) {
+  const { t, lang } = useI18n();
+  return (
+    <ListRow
+      n={juz.id}
+      title={juzLabel(juz.id, lang)}
+      meta={t('startsAt', { surah: surahLabel(getSurah(juz.surah), lang), ayah: juz.ayah })}
+      page={juz.page}
       onPress={() => openPage(juz.page)}
-      style={({ pressed }) => [styles.row, { borderColor: c.border }, pressed && { backgroundColor: c.highlight }]}>
-      <NumberBadge n={juz.id} />
-      <View style={styles.rowText}>
-        <Text style={[styles.rowTitle, { color: c.text }]}>{`الجزء ${JUZ_NAMES[juz.id - 1]}`}</Text>
-        <Text style={[styles.rowMeta, { color: c.textSecondary }]}>
-          {`يبدأ من ${getSurah(juz.surah).name} · آية ${toArabicDigits(juz.ayah)}`}
-        </Text>
-      </View>
-      <Text style={[styles.page, { color: c.textSecondary }]}>{toArabicDigits(juz.page)}</Text>
-    </Pressable>
+    />
   );
 }
 
 const styles = StyleSheet.create({
   list: { paddingBottom: BottomTabInset + 24 },
-  headerBlock: { paddingHorizontal: 16, gap: 14, paddingBottom: 8 },
-  continueCard: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 4 },
-  continueLabel: { fontSize: 13, ...rtlText },
-  continueTitle: { fontSize: 20, fontWeight: '700', ...rtlText },
-  continueMeta: { fontSize: 14, fontWeight: '600', ...rtlText },
-  segment: { flexDirection: ROW, borderWidth: 1, borderRadius: 12, padding: 4 },
-  segmentItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  row: {
-    flexDirection: ROW,
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  badge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerBlock: { paddingHorizontal: 16, gap: 12, paddingBottom: 8 },
+  progress: { height: 6, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: 6, borderRadius: 3 },
+  row: { gap: 14, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  badge: { width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   rowText: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 17, fontWeight: '600', ...rtlText },
-  rowMeta: { fontSize: 13, ...rtlText },
-  page: { fontSize: 14, minWidth: 32, textAlign: TEXT_LEFT },
 });

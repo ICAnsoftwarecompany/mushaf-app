@@ -3,20 +3,22 @@
  * بتظهر فوق التطبيق كل مرة يفتح، وبتختفي لوحدها بعد شوية، أو بضغطة.
  * التطبيق بيتحمّل تحتها في نفس الوقت، فمفيش أي تأخير إضافي.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, Pressable, StatusBar, StyleSheet, Text, useWindowDimensions } from 'react-native';
 
 import { Brand, NAME_AYAH, NAME_AYAH_TEXT, NAME_SURAH } from '@/constants/brand';
 import { QuranFont } from '@/constants/theme';
 import { getSurah, toArabicDigits } from '@/data/quran';
+import { useI18n } from '@/i18n';
 
 const SHOW_MS = 2600;
 const FADE_MS = 450;
 
 export function IntroScreen({ onDone }: { onDone: () => void }) {
   const { width } = useWindowDimensions();
-  const opacity = useRef(new Animated.Value(1)).current;
-  const content = useRef(new Animated.Value(0)).current;
+  const { t } = useI18n();
+  const [opacity] = useState(() => new Animated.Value(1));
+  const [content] = useState(() => new Animated.Value(0));
   const closing = useRef(false);
 
   const close = () => {
@@ -61,7 +63,7 @@ export function IntroScreen({ onDone }: { onDone: () => void }) {
           <Text style={styles.ref}>{`[${getSurah(NAME_SURAH).name}: ${toArabicDigits(NAME_AYAH)}]`}</Text>
         </Animated.View>
 
-        <Animated.Text style={[styles.tagline, { opacity: content }]}>{Brand.tagline}</Animated.Text>
+        <Animated.Text style={[styles.tagline, { opacity: content }]}>{t('tagline')}</Animated.Text>
       </Pressable>
     </Animated.View>
   );

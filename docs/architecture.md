@@ -3,89 +3,124 @@
 ```
 mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── AGENTS.md / CLAUDE.md        تعليمات لأدوات الذكاء الاصطناعي (بتشاور على docs/)
-├── app.json                     إعدادات Expo (الاسم، الـ package والـ bundle ID، الأيقونة، لون الـ splash)
-├── eas.json                     بروفايلات بناء أندرويد و iOS (preview و production)
-├── workbox-config.cjs           إعدادات الـ service worker لنسخة الويب
+├── app.json                     إعدادات Expo (الاسم، المعرّف، الأيقونات، الأذونات، الإضافات)
+├── eas.json                     بروفايلات بناء أندرويد و iOS
+├── metro.config.js              ملفات .ytd (بيانات كبيرة) بتتعامل كـ assets
+├── eslint.config.js             إعدادات الـ lint
+├── workbox-config.cjs           الـ service worker لنسخة الويب
 ├── public/                      ملفات الويب الثابتة: manifest.json وأيقونات PWA
-├── package.json                 المكتبات والأوامر
 ├── docs/                        التوثيق (الفولدر ده)
 ├── scripts/
-│   ├── brand/                   توليد لوجو الاسم كـ SVG (Python + HarfBuzz)
-│   └── build-quran-data.mjs     بيبني بيانات المصحف من المصادر ويتحقق منها
+│   ├── build-quran-data.mjs     بيبني بيانات المصحف من المصادر ويتحقق منها
+│   ├── build-extra-data.mjs     الأذكار، المدن، التجويد، التفسير، الترجمة
+│   ├── tests/data.test.mjs      اختبارات سلامة البيانات (npm test)
+│   └── brand/                   توليد لوجو الاسم كـ SVG
 ├── assets/
 │   ├── brand/                   ملفات اللوجو الأصلية (SVG)
-│   └── images/                  الأيقونات وشاشة البداية (PNG متولّدة من brand/)
+│   ├── data/                    التفسير والترجمة (.ytd) — بيتحمّلوا وقت الحاجة
+│   └── images/                  الأيقونات وشاشة البداية (PNG)
 └── src/
     ├── app/                     الشاشات (Expo Router) — كل ملف = شاشة
-    │   ├── _layout.tsx          الجذر: تحميل الخط + الثيم + حالة القراءة + Stack
-    │   ├── +html.tsx            قالب HTML للويب (اللغة، PWA، service worker)
-    │   ├── (tabs)/              التابات
-    │   │   ├── _layout.tsx
-    │   │   ├── index.tsx        الفهرس (السور والأجزاء + متابعة القراءة)
-    │   │   ├── search.tsx       البحث
-    │   │   ├── bookmarks.tsx    العلامات
-    │   │   └── settings.tsx     الإعدادات + مصادر البيانات
-    │   └── mushaf/
-    │       └── [page].tsx       القارئ (+ generateStaticParams لبناء الـ 604 صفحة على الويب)
+    │   ├── _layout.tsx          الجذر: الـ Providers + الخطوط + الشاشة الافتتاحية + جدولة الإشعارات
+    │   ├── +html.tsx            قالب HTML للويب (PWA، service worker)
+    │   ├── (tabs)/              التابات: index (المصحف)، prayer، azkar، search، settings
+    │   ├── mushaf/[page].tsx    القارئ (+ generateStaticParams للويب)
+    │   ├── azkar/[id].tsx       قسم أذكار بعدّادات
+    │   ├── bookmarks.tsx        العلامات
+    │   ├── goto.tsx             الانتقال لصفحة أو آية
+    │   ├── qibla.tsx            اتجاه القبلة
+    │   ├── tasbih.tsx           السبحة
+    │   ├── city.tsx             اختيار المدينة / GPS
+    │   ├── method.tsx           طريقة حساب المواقيت
+    │   ├── reciter.tsx          اختيار القارئ
+    │   ├── about.tsx            عن التطبيق + مصادر البيانات
+    │   └── privacy.tsx          سياسة الخصوصية
     ├── components/
-    │   ├── brand/
-    │   │   └── intro-screen.tsx الشاشة الافتتاحية (لوجو الاسم + آية الاسم)
-    │   ├── app-tabs.tsx         التابات الأصلية للموبايل (NativeTabs)
-    │   ├── app-tabs.web.tsx     شريط التابات على الويب
-    │   ├── screen.tsx           غلاف موحّد للشاشات
-    │   ├── themed-text.tsx      نص بألوان الثيم
-    │   ├── themed-view.tsx      View بألوان الثيم
+    │   ├── ui/index.tsx         Txt، Row، Card، Btn، Toggle، Segmented، Stepper، Section، SettingRow، Icon
+    │   ├── screen.tsx           غلاف الشاشات (عنوان + رجوع + أزرار)
+    │   ├── app-tabs.tsx         التابات الأصلية (موبايل)
+    │   ├── app-tabs.web.tsx     شريط التابات (ويب)
+    │   ├── brand/intro-screen.tsx   الشاشة الافتتاحية
     │   └── mushaf/
-    │       ├── mushaf-page.tsx      رسم صفحة واحدة بسطورها الـ 15
-    │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList أفقية)
-    │       └── page-pager.web.tsx   تقليب الصفحات (ويب — أزرار وأسهم)
+    │       ├── mushaf-page.tsx      صفحة بسطورها الـ 15 (+ التجويد والهامش والأحزاب)
+    │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList، صفحة أو صفحتين)
+    │       ├── page-pager.web.tsx   تقليب الصفحات (ويب — أزرار وأسهم)
+    │       ├── text-reader.tsx      وضع النص المتصل (+ الترجمة)
+    │       ├── tafsir-sheet.tsx     التفسير والترجمة للآية
+    │       └── audio-bar.tsx        شريط التلاوة
     ├── constants/
-    │   ├── brand.ts             ألوان الهوية وآية الاسم
-    │   ├── theme.ts             المسافات، الخطوط، اسم خط القرآن، أنواع الألوان
-    │   └── rtl.ts               قيم الاتجاه (ROW، TEXT_RIGHT، rtlText) حسب لغة الجهاز
-    ├── data/quran/
-    │   ├── index.ts             تحميل البيانات + دوال مساعدة (السورة، الصفحة، الجزء، الأرقام)
-    │   ├── search.ts            البحث وتبسيط النص
+    │   ├── theme.ts             المسافات، الخطوط، أسماء خطوط القرآن
+    │   ├── brand.ts             ألوان الهوية، آية الاسم، روابط «عن التطبيق»
+    │   └── rtl.ts               اتجاه الجهاز الأصلي (IS_RTL_LAYOUT)
+    ├── data/
+    │   ├── quran/index.ts       بيانات المصحف + دوال مساعدة (السورة، الصفحة، الجزء، الأحزاب، السجدات)
+    │   ├── quran/search.ts      البحث وتبسيط النص
+    │   ├── quran/extra.ts       التفسير والترجمة (تحميل وقت الحاجة) + تقطيع التجويد
+    │   ├── quran/load-text*.ts  قراءة ملفات .ytd (موبايل / ويب)
+    │   ├── azkar.ts             الأذكار
     │   └── *.json               بيانات مولّدة — ممنوع التعديل بالإيد
-    ├── hooks/
-    │   └── use-theme.ts         ألوان الثيم الحالي بمفاتيح مختصرة
+    ├── features/
+    │   ├── prayer/              مواقيت الصلاة، القبلة، المدن، التاريخ الهجري، تحديد الموقع
+    │   ├── audio/               مشغّل التلاوة، القرّاء، التحميل للاستماع بدون إنترنت
+    │   ├── notifications/       جدولة الإشعارات المحلية (موبايل) — الويب فاضي
+    │   └── backup*.ts           النسخ الاحتياطي (موبايل / ويب)
+    ├── i18n/
+    │   ├── strings.ts           كل نصوص الواجهة بالعربي والإنجليزي
+    │   └── index.ts             useI18n(): t، lang، dir، num
     ├── store/
-    │   └── reading-store.tsx    آخر صفحة + العلامات (AsyncStorage)
+    │   ├── settings-store.tsx   كل الإعدادات
+    │   └── reading-store.tsx    آخر صفحة + العلامات + الختمة والورد
+    ├── hooks/use-theme.ts       ألوان الثيم الحالي (للتابات)
     └── theme/
-        ├── theme.ts             تعريف الـ 7 ثيمات
-        ├── ThemeContext.tsx     اختيار الثيم وحفظه
-        └── ThemePicker.tsx      واجهة اختيار الثيم
+        ├── theme.ts             الـ 7 ثيمات وألوان التجويد
+        └── ThemeContext.tsx     اختيار الثيم + الوضع الليلي بالمواقيت + تشغيل التجويد
 ```
 
 ## ترتيب الـ Providers
 
 ```
-ThemeProvider            (src/theme/ThemeContext.tsx)
-└── ReadingProvider      (src/store/reading-store.tsx)
-    └── RootStack        بيستنى الخط والإعدادات المحفوظة، وبعدين يخفي الـ splash ويعرض الشاشة الافتتاحية فوق التطبيق
-        ├── (tabs)
-        └── mushaf/[page]
+SettingsProvider         كل الإعدادات (اللغة، الخطوط، المواقيت، الإشعارات…)
+└── ThemeProvider        الثيم (وبيقرا الإعدادات علشان الوضع الليلي بالمواقيت)
+    └── ReadingProvider  آخر صفحة + العلامات + الختمة
+        └── AudioProvider    مشغّل التلاوة
+            └── RootStack    بيستنى كل حاجة تتحمّل، يخفي الـ splash، يعرض الشاشة الافتتاحية،
+                             ويعيد جدولة الإشعارات (NotificationsSync)
 ```
 
-## الحالة والتخزين
+## التخزين على الجهاز (AsyncStorage)
 
-| المفتاح في AsyncStorage | المحتوى | الملف |
+| المفتاح | المحتوى | الملف |
 |---|---|---|
+| `yatlu.settings` | كل الإعدادات (`Settings`) | `settings-store.tsx` |
 | `mushaf.themeMode` | الثيم المختار أو `system` | `ThemeContext.tsx` |
-| `mushaf.tajweedEnabled` | تشغيل ألوان التجويد (`1`/`0`) | `ThemeContext.tsx` |
-| `mushaf.lastRead` | `{ page, at }` آخر صفحة اتقرت | `reading-store.tsx` |
-| `mushaf.bookmarks` | قائمة العلامات `{ id, page, ayahId?, createdAt }` | `reading-store.tsx` |
+| `mushaf.tajweedEnabled` | ألوان التجويد (`1`/`0`) | `ThemeContext.tsx` |
+| `mushaf.lastRead` | `{ page, at }` | `reading-store.tsx` |
+| `mushaf.bookmarks` | `{ id, page, ayahId?, createdAt }[]` | `reading-store.tsx` |
+| `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
 
-## المكتبات الأساسية
+ملفات التلاوة المتحمّلة: `<Documents>/audio/<القارئ>/<SSSAAA>.mp3` (موبايل بس).
+
+## المكتبات
 
 | المكتبة | الاستخدام |
 |---|---|
 | `expo-router` | التنقل والتابات |
-| `@shopify/flash-list` | القوايم الطويلة |
-| `@react-native-async-storage/async-storage` | حفظ الإعدادات والعلامات |
-| `@expo-google-fonts/scheherazade-new` | خط نص القرآن |
-| `expo-splash-screen` | شاشة البداية لحد ما الخط يتحمّل |
-| `expo-asset` | مطلوبة لـ `expo-audio` |
-| `workbox-cli` (dev) | توليد الـ service worker للويب |
-
-مكتبات متسطّبة ولسه مش مستخدمة (للمراحل الجاية): `expo-audio`، `expo-file-system`، `expo-sqlite`.
+| `@shopify/flash-list` | القوايم الطويلة ووضع النص المتصل |
+| `@react-native-async-storage/async-storage` | التخزين |
+| `@expo-google-fonts/scheherazade-new` | خط القرآن (عادي وعريض) |
+| `adhan` | مواقيت الصلاة والقبلة (أوفلاين) |
+| `hijri-converter` | التاريخ الهجري (أم القرى) |
+| `ghunna` | أحكام التجويد (وقت البناء بس، في `build-extra-data`) |
+| `expo-audio` | التلاوة + التحكم من شاشة القفل |
+| `expo-file-system` | تحميل التلاوات وقراءة الملفات |
+| `expo-notifications` | الإشعارات المحلية |
+| `expo-location` | الموقع والبوصلة |
+| `expo-haptics` | الاهتزاز |
+| `expo-keep-awake` | الشاشة منورة أثناء القراءة |
+| `expo-clipboard` | نسخ الآية |
+| `expo-sharing`، `expo-document-picker` | النسخ الاحتياطي |
+| `expo-localization` | لغة الجهاز (الافتراضي) |
+| `expo-application`، `expo-constants` | رقم الإصدار |
+| `expo-asset` | ملفات .ytd + مطلوبة لـ expo-audio |
+| `workbox-cli` (dev) | الـ service worker للويب |
+| `eslint`، `eslint-config-expo` (dev) | الـ lint |
