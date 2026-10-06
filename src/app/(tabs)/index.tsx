@@ -4,7 +4,7 @@
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { HeaderButton, Screen } from '@/components/screen';
 import { Btn, Card, Row, Segmented, Txt } from '@/components/ui';
@@ -24,6 +24,8 @@ const hizbStarts = quarters.filter((q) => (q.id - 1) % 4 === 0);
 
 export default function IndexScreen() {
   const { t, lang } = useI18n();
+  const { theme } = useMushafTheme();
+  const c = theme.colors;
   const [tab, setTab] = useState<Tab>('surahs');
 
   const header = (
@@ -45,6 +47,14 @@ export default function IndexScreen() {
   return (
     <Screen
       title={t('appName')}
+      titleNode={
+        // نفس كتابة الاسم «يَتْلُو» بخط الرقعة اللي في الشاشة الافتتاحية، بلون الثيم
+        <Image
+          source={require('@/assets/images/wordmark.png')}
+          style={{ width: 54, height: 58, tintColor: c.accent }}
+          resizeMode="contain"
+        />
+      }
       subtitle={t('indexSubtitle')}
       actions={
         <>

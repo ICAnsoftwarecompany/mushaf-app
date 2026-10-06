@@ -1,11 +1,13 @@
 /**
  * تاب المواقيت: الصلاة القادمة والعد التنازلي، وجدول اليوم، والتاريخ الهجري،
+ * وقايمة الفروض (✓ لكل صلاة + سجل ٧ أيام + أذكار ما بعد الصلاة)،
  * واختصارات للقبلة والسبحة. الحساب كله على الجهاز من غير إنترنت.
  */
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { AfterPrayerPrompt, PrayedCheck, WeekLog } from '@/components/prayer/prayer-tracker';
 import { Screen } from '@/components/screen';
 import { Btn, Card, Icon, type IconName, Row, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
@@ -13,6 +15,7 @@ import { gregorianDate, hijriDate } from '@/features/prayer/hijri';
 import { detectLocation } from '@/features/prayer/locate';
 import { computeTimes, formatDuration, formatTime, locationLabel, nextPrayer, PRAYERS, resolveMethod } from '@/features/prayer/prayer';
 import { useI18n } from '@/i18n';
+import { type Salah, todayKey } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
@@ -26,6 +29,7 @@ export default function PrayerScreen() {
   const [now, setNow] = useState(() => new Date());
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [justPrayed, setJustPrayed] = useState<Salah | null>(null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -100,6 +104,14 @@ export default function PrayerScreen() {
             )}
 
             <Card style={{ padding: 0 }}>
+              <Row style={[styles.trackerHead, { borderColor: c.border }]}>
+                <Txt size={15} weight="bold" style={{ flex: 1 }}>
+                  {t('prayerTracker')}
+                </Txt>
+                <Txt size={12} color="textSecondary">
+                  {t('prayerTrackerHint')}
+                </Txt>
+              </Row>
               {PRAYERS.map((p, i) => {
                 const active = next?.key === p && next.time.toDateString() === now.toDateString();
                 return (
@@ -107,9 +119,15 @@ export default function PrayerScreen() {
                     key={p}
                     style={[
                       styles.timeRow,
+                      { gap: 12 },
                       i < PRAYERS.length - 1 ? { borderBottomWidth: StyleSheet.hairlineWidth, borderColor: c.border } : {},
                       active ? { backgroundColor: c.highlight } : {},
                     ]}>
+                    {p === 'sunrise' ? (
+                      <View style={{ width: 28 }} />
+                    ) : (
+                      <PrayedCheck day={todayKey(now)} p={p} enabled={times[p] <= now} onMarked={setJustPrayed} />
+                    )}
                     <Txt size={17} weight={active ? 'bold' : 'medium'} color={p === 'sunrise' ? 'textSecondary' : 'text'} style={{ flex: 1 }}>
                       {t(p)}
                     </Txt>
@@ -120,6 +138,8 @@ export default function PrayerScreen() {
                 );
               })}
             </Card>
+
+            <WeekLog now={now} />
 
             <Pressable onPress={() => router.push('/city')} accessibilityRole="button">
               <Row style={{ gap: 8, paddingHorizontal: 4 }}>
@@ -140,6 +160,7 @@ export default function PrayerScreen() {
           <Shortcut icon="tasbih" label={t('tasbih')} onPress={() => router.push('/tasbih')} />
         </Row>
       </ScrollView>
+      <AfterPrayerPrompt prayer={justPrayed} onClose={() => setJustPrayed(null)} />
     </Screen>
   );
 }
@@ -164,5 +185,6 @@ const styles = StyleSheet.create({
   body: { padding: 16, gap: 14, paddingBottom: BottomTabInset + 32 },
   hero: { gap: 4, paddingVertical: 20 },
   timeRow: { paddingHorizontal: 16, paddingVertical: 14 },
+  trackerHead: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, borderBottomWidth: StyleSheet.hairlineWidth },
 });
 

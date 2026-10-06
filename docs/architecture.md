@@ -44,13 +44,14 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── app-tabs.web.tsx     شريط التابات (ويب)
     │   ├── brand/intro-screen.tsx   الشاشة الافتتاحية
     │   ├── audio/mini-player.tsx    المشغّل الصغير فوق كل الشاشات
+    │   ├── prayer/prayer-tracker.tsx  قايمة الفروض: ✓، سجل ٧ أيام، سؤال أذكار ما بعد الصلاة
     │   ├── listen/              الاستماع: now-playing، list-row، download-button، add-to-playlist، name-prompt
     │   └── mushaf/
     │       ├── mushaf-page.tsx      صفحة بسطورها الـ 15 (+ التجويد والهامش والأحزاب)
     │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList، صفحة أو صفحتين)
     │       ├── page-pager.web.tsx   تقليب الصفحات (ويب — أزرار وأسهم)
     │       ├── text-reader.tsx      وضع النص المتصل (+ الترجمة)
-    │       ├── pinch-zoom.tsx       التكبير بإصبعين (gesture-handler + reanimated)
+    │       ├── pinch-zoom.tsx       التكبير بإصبعين للخط (gesture-handler + reanimated)
     │       ├── tafsir-sheet.tsx     التفسير والترجمة للآية
     │       └── audio-bar.tsx        شريط التلاوة
     ├── constants/
@@ -104,6 +105,7 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `mushaf.lastRead` | `{ page, at }` | `reading-store.tsx` |
 | `mushaf.bookmarks` | `{ id, page, ayahId?, createdAt }[]` | `reading-store.tsx` |
 | `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
+| `yatlu.prayerLog` | `{ "YYYY-MM-DD": { fajr?: ms, … } }` آخر 30 يوم (داخل في النسخة الاحتياطية) | `reading-store.tsx` |
 | `yatlu.playlists` | `{ id, name, surahs[], createdAt }[]` (داخلة في النسخة الاحتياطية) | `reading-store.tsx` |
 
 ملفات التلاوة المتحمّلة: `<Documents>/audio/<القارئ>/<SSSAAA>.mp3` (موبايل بس). تحميل السورة بيشمل `001001.mp3` (البسملة). التحميل بيتكتب في `.part` الأول وبعدين يتنقل، علشان ملف ناقص ما يتحسبش متحمّل.

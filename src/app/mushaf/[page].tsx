@@ -6,7 +6,7 @@
  * - التلاوة بتظلّل الآية وتقلّب الصفحة لوحدها
  * - آخر صفحة بتتحفظ تلقائيًا، والشاشة بتفضل منورة (لو مفعّل)
  * - الشريط العلوي (السورة، الجزء، الحزب، الصفحة) ظاهر على طول
- * - التكبير بإصبعين: تكبير الصفحة في وضع الصفحات، وتغيير حجم الخط في وضع النص
+ * - التكبير بإصبعين بيكبّر الخط بس (وضع الصفحات: السطور بتلف لما الخط يكبر)
  */
 import * as Clipboard from 'expo-clipboard';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -67,8 +67,6 @@ export default function MushafScreen() {
 
   const [page, setPage] = useState(initialPage);
   const [selectedAyah, setSelectedAyah] = useState<number | null>(initialAyah);
-  const [zoomed, setZoomed] = useState(false);
-  const [zoomReset, setZoomReset] = useState(0);
   const [area, setArea] = useState<{ width: number; height: number } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [tafsirAyah, setTafsirAyah] = useState<number | null>(null);
@@ -138,6 +136,19 @@ export default function MushafScreen() {
   );
   const fontRange: [number, number] = [scaleFactor(1) / scaleFactor(settings.mushafScale), scaleFactor(10) / scaleFactor(settings.mushafScale)];
 
+  // وضع الصفحات: تكبير الخط من ١٠٠٪ لـ ٢٥٠٪ بخطوات ١٠٪
+  const onPagePinchEnd = useCallback(
+    (pinchScale: number) => {
+      const z = Math.min(2.5, Math.max(1, Math.round(settings.pageZoom * pinchScale * 10) / 10));
+      if (Math.abs(z - settings.pageZoom) >= 0.05) {
+        update({ pageZoom: z });
+        haptic();
+      }
+    },
+    [settings.pageZoom, update, haptic]
+  );
+  const pageRange: [number, number] = [1 / settings.pageZoom, 2.5 / settings.pageZoom];
+
   // ───── الصفحات: عنصر = صفحة أو صفحتين ─────
   const count = spread ? Math.ceil(TOTAL_PAGES / 2) : TOTAL_PAGES;
   const index = spread ? Math.ceil(page / 2) : page;
@@ -154,6 +165,7 @@ export default function MushafScreen() {
       tajweed={tajweedEnabled}
       bold={settings.mushafBold}
       showMargins={settings.showMargins}
+      zoom={settings.pageZoom}
       onAyahPress={onAyahPress}
       onBackgroundPress={clearSelection}
     />
@@ -273,7 +285,7 @@ export default function MushafScreen() {
       <View style={styles.area} onLayout={onLayout}>
         {area &&
           (textMode ? (
-            <PinchZoom mode="font" fontPreviewRange={fontRange} onFontPinchEnd={onFontPinchEnd}>
+            <PinchZoom previewRange={fontRange} onPinchEnd={onFontPinchEnd}>
             <View style={{ flex: 1, alignSelf: 'stretch' }}>
             <TextReader
               startAyah={selectedAyah ?? firstAyahOfPage(page)}
@@ -290,20 +302,13 @@ export default function MushafScreen() {
             </View>
             </PinchZoom>
           ) : (
-            <PinchZoom mode="visual" resetKey={`${page}-${zoomReset}`} onZoomedChange={setZoomed}>
-              <PagePager
-                key={spread ? 'spread' : 'single'}
-                count={count}
-                index={index}
-                onIndexChange={onIndexChange}
-                renderItem={renderItem}
-                scrollEnabled={!zoomed}
-              />
+            <PinchZoom previewRange={pageRange} onPinchEnd={onPagePinchEnd}>
+              <PagePager key={spread ? 'spread' : 'single'} count={count} index={index} onIndexChange={onIndexChange} renderItem={renderItem} />
             </PinchZoom>
           ))}
-        {zoomed && !textMode && (
+        {settings.pageZoom > 1 && !textMode && (
           <Pressable
-            onPress={() => setZoomReset((n) => n + 1)}
+            onPress={() => update({ pageZoom: 1 })}
             accessibilityRole="button"
             accessibilityLabel={t('resetZoom')}
             style={[styles.zoomChip, { backgroundColor: c.surface, borderColor: c.border }]}>

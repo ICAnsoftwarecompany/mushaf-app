@@ -1,6 +1,6 @@
 /**
  * الإشعارات المحلية (من غير سيرفر): الأذان، والتنبيه قبل الصلاة، وأذكار الصباح والمساء،
- * والورد اليومي، وسورة الكهف يوم الجمعة.
+ * والورد اليومي، وسورة الكهف يوم الجمعة، وتذكير قبل خروج وقت الصلاة لو ما اتعلّمتش في قايمة الفروض.
  * بيتعاد جدولتها كل ما الإعدادات تتغير أو التطبيق يتفتح (iOS بيسمح بـ 64 إشعار مجدول بس).
  */
 import Constants, { ExecutionEnvironment } from 'expo-constants';
@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 
 import { computeTimes, locationLabel, SALAH } from '@/features/prayer/prayer';
 import { translate } from '@/i18n';
+import { type PrayerLog, todayKey } from '@/store/reading-store';
 import type { Settings } from '@/store/settings-store';
 
 const CH_ADHAN = 'adhan';
@@ -80,12 +81,12 @@ const hm = (s: string) => {
   return { hour: h || 0, minute: m || 0 };
 };
 
-export async function rescheduleAll(s: Settings): Promise<void> {
+export async function rescheduleAll(s: Settings, log: PrayerLog = {}): Promise<void> {
   const Notifications = load();
   if (!Notifications) return;
   await configure(Notifications);
   await Notifications.cancelAllScheduledNotificationsAsync();
-  const anything = s.notifyAdhan || s.notifyAzkar || s.notifyWird || s.notifyKahf;
+  const anything = s.notifyAdhan || s.notifyAzkar || s.notifyWird || s.notifyKahf || s.notifyMissedPrayer;
   if (!anything) return;
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) return;
@@ -102,7 +103,8 @@ export async function rescheduleAll(s: Settings): Promise<void> {
 
   // الأذان والتنبيه قبله: لكام يوم جاي (في حدود 64 إشعار على iOS)
   if (s.notifyAdhan && s.location) {
-    const days = s.preReminder > 0 ? 5 : 10;
+    // حد iOS 64 إشعار: تذكير الفروض بياخد 10 (النهارده وبكرة)
+    const days = (s.preReminder > 0 ? 5 : 10) - (s.notifyMissedPrayer ? 1 : 0);
     const now = Date.now();
     const city = locationLabel(s.location, s.language);
     for (let d = 0; d < days; d++) {
@@ -129,6 +131,32 @@ export async function rescheduleAll(s: Settings): Promise<void> {
             CH_REMINDERS,
             true
           );
+      }
+    }
+  }
+
+  // قايمة الفروض: تذكير قبل خروج الوقت لو الصلاة لسه ما اتعلّمش عليها (النهارده وبكرة)
+  if (s.notifyMissedPrayer && s.location) {
+    const now = Date.now();
+    const city = locationLabel(s.location, s.language);
+    for (let d = 0; d < 2; d++) {
+      const date = new Date(now + d * 86400000);
+      const times = computeTimes(s, date);
+      const tomorrow = computeTimes(s, new Date(date.getTime() + 86400000));
+      if (!times || !tomorrow) break;
+      const day = todayKey(date);
+      const ends = { fajr: times.sunrise, dhuhr: times.asr, asr: times.maghrib, maghrib: times.isha, isha: tomorrow.fajr };
+      for (const p of SALAH) {
+        if (log[day]?.[p]) continue;
+        const at = ends[p].getTime() - s.missedReminderMin * 60000;
+        if (at <= now || at <= times[p].getTime() + 5 * 60000) continue;
+        schedule(
+          t('notifMissedTitle', { p: t(p) }),
+          t('notifMissedBody', { p: t(p), city }),
+          { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(at) },
+          CH_REMINDERS,
+          true
+        );
       }
     }
   }

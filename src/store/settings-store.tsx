@@ -46,6 +46,8 @@ export interface Settings {
   // المصحف
   mushafMode: 'pages' | 'text';
   mushafScale: number; // 1..10 — في وضع «نص متصل» وفي الشاشات التانية
+  /** تكبير الخط في وضع الصفحات (1 = ترتيب سطور المصحف بالظبط، أكبر = السطور بتلف) */
+  pageZoom: number;
   mushafBold: boolean;
   showMargins: boolean;
   showTranslation: boolean; // ترجمة المعاني تحت الآية في وضع النص المتصل
@@ -72,6 +74,9 @@ export interface Settings {
   notifyWird: boolean;
   wirdTime: string;
   notifyKahf: boolean;
+  /** تذكير قبل خروج وقت الصلاة لو ما اتعلّمش عليها في قايمة الفروض */
+  notifyMissedPrayer: boolean;
+  missedReminderMin: number;
 
   // الأذكار
   removeFinishedAzkar: boolean;
@@ -100,6 +105,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
   mushafMode: 'pages',
   mushafScale: 5,
+  pageZoom: 1,
   mushafBold: false,
   showMargins: true,
   showTranslation: false,
@@ -124,6 +130,8 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyWird: false,
   wirdTime: '20:00',
   notifyKahf: true,
+  notifyMissedPrayer: true,
+  missedReminderMin: 30,
 
   removeFinishedAzkar: true,
   vibrateOnFinish: true,
@@ -151,6 +159,7 @@ function merge(saved: Partial<Settings> | null): Settings {
   s.notifyPrayers = { ...DEFAULT_SETTINGS.notifyPrayers, ...(saved?.notifyPrayers ?? {}) };
   s.uiScale = clamp(s.uiScale, 1, 10);
   s.mushafScale = clamp(s.mushafScale, 1, 10);
+  s.pageZoom = clamp(s.pageZoom, 1, 2.5);
   return s;
 }
 

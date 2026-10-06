@@ -2,9 +2,10 @@
  * صفحة واحدة من المصحف بنفس ترتيب سطور مصحف المدينة (15 سطر).
  * النص بيتعرض من ayahs.json زي ما هو — الكومبوننت ده بيرتّب الكلمات بس،
  * وألوان التجويد بتقطّع الكلمة لأجزاء ملوّنة من غير ما تغيّر أي حرف.
+ * التكبير (zoom > 1): نفس كلمات الصفحة بخط أكبر والسطور بتلف، والصفحة بتتسحب لتحت.
  */
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { QuranFont, QuranFontBold } from '@/constants/theme';
 import {
@@ -45,6 +46,8 @@ interface Props {
   tajweed?: boolean;
   bold?: boolean;
   showMargins?: boolean;
+  /** تكبير الخط (1 = ترتيب السطور زي المصحف) */
+  zoom?: number;
   onAyahPress?: (ayahId: number) => void;
   onBackgroundPress?: () => void;
 }
@@ -94,6 +97,7 @@ function MushafPageView({
   tajweed,
   bold,
   showMargins = true,
+  zoom = 1,
   onAyahPress,
   onBackgroundPress,
 }: Props) {
@@ -167,8 +171,11 @@ function MushafPageView({
   const juz = juzOfPage(page);
   const quarter = quartersOnPage(page)[0];
 
-  const wordText = (w: Word) => {
-    const base = { fontFamily: font, fontSize, lineHeight: lineH, color: c.text, writingDirection: 'rtl' as const };
+  const reflow = zoom > 1.01;
+  const zfs = fontSize * zoom;
+
+  const wordText = (w: Word, size = fontSize, lh = lineH) => {
+    const base = { fontFamily: font, fontSize: size, lineHeight: lh, color: c.text, writingDirection: 'rtl' as const };
     if (!tajweed) return <Text style={base}>{w.text}</Text>;
     const full = ayahs[w.ayahId - 1];
     const spans = tajweedSpans(w.ayahId, full, w.start, w.start + w.text.length);
@@ -185,6 +192,75 @@ function MushafPageView({
         )}
       </Text>
     );
+  };
+
+  const renderWord = (w: Word, k: number, size: number, lh: number) => {
+    const selected = selectedAyah === w.ayahId;
+    const playing = playingAyah === w.ayahId;
+    return (
+      <Pressable
+        key={k}
+        onPress={() => onAyahPress?.(w.ayahId)}
+        style={[styles.word, { flexDirection: ARABIC_DIR.row }, (selected || playing) && { backgroundColor: c.highlight, borderRadius: 4 }]}>
+        {w.text !== '' && wordText(w, size, lh)}
+        {w.end && (
+          <View
+            style={[
+              styles.ayahMark,
+              {
+                width: size * 1.05,
+                height: size * 1.05,
+                borderRadius: size,
+                borderColor: c.accent,
+                marginHorizontal: w.text ? size * 0.08 : 0,
+              },
+            ]}>
+            <Text style={{ fontSize: size * 0.42, color: c.accent, fontWeight: '600' }}>{toArabicDigits(ayahNumber(w.ayahId))}</Text>
+          </View>
+        )}
+      </Pressable>
+    );
+  };
+
+  /** وضع التكبير: الكلمات المتتالية في كتلة واحدة بتلف، والعناوين والبسملة زي ما هي بخط أكبر */
+  const renderReflow = () => {
+    const blocks: React.ReactNode[] = [];
+    let run: Word[] = [];
+    const flush = (key: string) => {
+      if (!run.length) return;
+      const ws = run;
+      run = [];
+      blocks.push(
+        <View
+          key={key}
+          style={{ flexDirection: ARABIC_DIR.row, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', columnGap: zfs * 0.3 }}>
+          {ws.map((w, k) => renderWord(w, k, zfs, zfs * 1.9))}
+        </View>
+      );
+    };
+    lines.forEach(({ line, words }, i) => {
+      if (line[0] === 'w') return void run.push(...words);
+      flush(`r${i}`);
+      blocks.push(
+        line[0] === 'h' ? (
+          <View key={i} style={[styles.lineBox, { paddingVertical: zfs * 0.4 }]}>
+            <View style={[styles.surahHeader, { borderColor: c.accent, backgroundColor: c.surface }]}>
+              <Text style={{ fontFamily: font, fontSize: zfs * 0.9, color: c.accent, writingDirection: 'rtl' }}>
+                {`سُورَةُ ${getSurah(line[1]).name}`}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View key={i} style={[styles.lineBox, { paddingVertical: zfs * 0.2 }]}>
+            <Text style={{ fontFamily: font, fontSize: zfs, lineHeight: zfs * 1.9, color: c.text, writingDirection: 'rtl', textAlign: 'center' }}>
+              {BASMALA}
+            </Text>
+          </View>
+        )
+      );
+    });
+    flush('end');
+    return blocks;
   };
 
   return (
@@ -204,6 +280,11 @@ function MushafPageView({
         )}
       </View>
 
+      {reflow ? (
+        <ScrollView style={{ height: textH }} contentContainerStyle={{ paddingVertical: 8 }} showsVerticalScrollIndicator={false}>
+          {widths && renderReflow()}
+        </ScrollView>
+      ) : (
       <View style={[styles.body, isOpening && styles.bodyCentered, { height: textH }]}>
         {widths &&
           lines.map(({ line, words }, i) => {
@@ -238,43 +319,12 @@ function MushafPageView({
                     columnGap: justify ? fontSize * WORD_GAP_EM : fontSize * 0.3,
                   },
                 ]}>
-                {words.map((w, k) => {
-                  const selected = selectedAyah === w.ayahId;
-                  const playing = playingAyah === w.ayahId;
-                  return (
-                    <Pressable
-                      key={k}
-                      onPress={() => onAyahPress?.(w.ayahId)}
-                      style={[
-                        styles.word,
-                        { flexDirection: ARABIC_DIR.row },
-                        (selected || playing) && { backgroundColor: c.highlight, borderRadius: 4 },
-                      ]}>
-                      {w.text !== '' && wordText(w)}
-                      {w.end && (
-                        <View
-                          style={[
-                            styles.ayahMark,
-                            {
-                              width: fontSize * 1.05,
-                              height: fontSize * 1.05,
-                              borderRadius: fontSize,
-                              borderColor: c.accent,
-                              marginHorizontal: w.text ? fontSize * 0.08 : 0,
-                            },
-                          ]}>
-                          <Text style={{ fontSize: fontSize * 0.42, color: c.accent, fontWeight: '600' }}>
-                            {toArabicDigits(ayahNumber(w.ayahId))}
-                          </Text>
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                })}
+                {words.map((w, k) => renderWord(w, k, fontSize, lineH))}
               </View>
             );
           })}
       </View>
+      )}
 
       {!widths && (
         <View style={[styles.measureLayer, { pointerEvents: 'none' }]}>

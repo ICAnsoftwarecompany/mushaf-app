@@ -5,6 +5,6 @@ export async function ensurePermission(): Promise<boolean> {
   return false;
 }
  
-export async function rescheduleAll(_s: Settings): Promise<void> {}
+export async function rescheduleAll(_s: Settings, _log?: unknown): Promise<void> {}
 export const notificationsSupported = false;
 export const isExpoGoAndroid = false;

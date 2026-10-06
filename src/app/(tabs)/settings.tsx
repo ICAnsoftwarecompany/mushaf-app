@@ -155,7 +155,7 @@ export default function SettingsScreen() {
         </Section>
 
         {/* ───── المصحف ───── */}
-        <Section title={t('secMushaf')} footer={s.mushafMode === 'pages' ? t('pagesModeNote') : undefined}>
+        <Section title={t('secMushaf')}>
           <View style={[styles.preview, { borderColor: c.border }]}>
             <Text
               style={{
@@ -184,8 +184,18 @@ export default function SettingsScreen() {
               ]}
             />
           </SettingRow>
-          <SettingRow icon="textSize" label={t('fontSize')}>
+          <SettingRow icon="textSize" label={t('fontSize')} hint={t('readingModeText')}>
             <Stepper value={s.mushafScale} min={1} max={10} onChange={(v) => update({ mushafScale: v })} />
+          </SettingRow>
+          <SettingRow icon="textSize" label={t('pageZoom')} hint={t('pageZoomHint')}>
+            <Stepper
+              value={s.pageZoom}
+              min={1}
+              max={2.5}
+              step={0.25}
+              onChange={(v) => update({ pageZoom: v })}
+              format={(v) => num(`${Math.round(v * 100)}٪`.replace('٪', lang === 'ar' ? '٪' : '%'))}
+            />
           </SettingRow>
           <SettingRow icon="bold" label={t('fontWeight')} vertical>
             <Segmented
@@ -310,6 +320,21 @@ export default function SettingsScreen() {
               format={(v) => (v === 0 ? t('preReminderOff') : num(`${v} ${t('minutesShort')}`))}
             />
           </SettingRow>
+          <SettingRow icon="checkmark" label={t('notifyMissedPrayer')} hint={t('notifyMissedPrayerHint')}>
+            <Toggle label={t('notifyMissedPrayer')} value={s.notifyMissedPrayer} onChange={(v) => setNotify({ notifyMissedPrayer: v })} />
+          </SettingRow>
+          {s.notifyMissedPrayer && (
+            <SettingRow label={t('missedReminderMin')}>
+              <Stepper
+                value={s.missedReminderMin}
+                min={10}
+                max={90}
+                step={10}
+                onChange={(v) => update({ missedReminderMin: v })}
+                format={(v) => num(`${v} ${t('minutesShort')}`)}
+              />
+            </SettingRow>
+          )}
           <SettingRow icon="sparkles" label={t('notifyAzkar')}>
             <Toggle label={t('notifyAzkar')} value={s.notifyAzkar} onChange={(v) => setNotify({ notifyAzkar: v })} />
           </SettingRow>

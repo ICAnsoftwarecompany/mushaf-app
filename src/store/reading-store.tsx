@@ -9,6 +9,13 @@ const LAST_READ_KEY = 'mushaf.lastRead';
 const BOOKMARKS_KEY = 'mushaf.bookmarks';
 const KHATMA_KEY = 'yatlu.khatma';
 const PLAYLISTS_KEY = 'yatlu.playlists';
+const PRAYER_LOG_KEY = 'yatlu.prayerLog';
+
+export type Salah = 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+/** سجل الفروض: اليوم "YYYY-MM-DD" ← الصلاة ← وقت التعليم (ms) */
+export type PrayerLog = Record<string, Partial<Record<Salah, number>>>;
+/** بنحتفظ بآخر 30 يوم بس */
+const LOG_DAYS = 30;
 
 /** قايمة استماع: سور بترتيب يختاره المستخدم */
 export interface Playlist {
@@ -54,6 +61,9 @@ interface ReadingContextValue {
   markWirdDone: (pagesPerDay: number) => void;
   newKhatma: () => void;
   playlists: Playlist[];
+  prayerLog: PrayerLog;
+  /** بيرجّع true لو الصلاة اتعلّمت (مش اتشالت) */
+  togglePrayed: (day: string, p: Salah) => boolean;
   createPlaylist: (name: string, surahs?: number[]) => string;
   renamePlaylist: (id: string, name: string) => void;
   deletePlaylist: (id: string) => void;
@@ -66,7 +76,7 @@ interface ReadingContextValue {
   ready: boolean;
 }
 
-type ExportedData = { lastRead: LastRead | null; bookmarks: Bookmark[]; khatma: Khatma; playlists: Playlist[] };
+type ExportedData = { lastRead: LastRead | null; bookmarks: Bookmark[]; khatma: Khatma; playlists: Playlist[]; prayerLog: PrayerLog };
 
 const ReadingContext = createContext<ReadingContextValue | null>(null);
 
@@ -79,19 +89,22 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [khatma, setKhatma] = useState<Khatma>(NEW_KHATMA);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [prayerLog, setPrayerLog] = useState<PrayerLog>({});
   const [ready, setReady] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [lr, bm, kh, pl] = await Promise.all([
+        const [lr, bm, kh, pl, pr] = await Promise.all([
           AsyncStorage.getItem(LAST_READ_KEY),
           AsyncStorage.getItem(BOOKMARKS_KEY),
           AsyncStorage.getItem(KHATMA_KEY),
           AsyncStorage.getItem(PLAYLISTS_KEY),
+          AsyncStorage.getItem(PRAYER_LOG_KEY),
         ]);
         if (pl) setPlaylists(JSON.parse(pl));
+        if (pr) setPrayerLog(JSON.parse(pr));
         if (lr) setLastRead(JSON.parse(lr));
         if (bm) setBookmarks(JSON.parse(bm));
         if (kh) setKhatma({ ...NEW_KHATMA(), ...JSON.parse(kh) });
@@ -209,9 +222,36 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
     [editPlaylist]
   );
 
-  const exportData = useCallback(() => ({ lastRead, bookmarks, khatma, playlists }), [lastRead, bookmarks, khatma, playlists]);
+  const togglePrayed = useCallback(
+    (day: string, p: Salah) => {
+      const marked = !prayerLog[day]?.[p];
+      setPrayerLog((prev) => {
+        const dayLog = { ...(prev[day] ?? {}) };
+        if (marked) dayLog[p] = Date.now();
+        else delete dayLog[p];
+        const next: PrayerLog = { ...prev, [day]: dayLog };
+        // نشيل الأيام القديمة
+        const keep = Object.keys(next).sort().slice(-LOG_DAYS);
+        const pruned: PrayerLog = {};
+        for (const k of keep) pruned[k] = next[k];
+        persist(PRAYER_LOG_KEY, pruned);
+        return pruned;
+      });
+      return marked;
+    },
+    [prayerLog]
+  );
+
+  const exportData = useCallback(
+    () => ({ lastRead, bookmarks, khatma, playlists, prayerLog }),
+    [lastRead, bookmarks, khatma, playlists, prayerLog]
+  );
 
   const importData = useCallback((d: Partial<ExportedData>) => {
+    if (d.prayerLog && typeof d.prayerLog === 'object') {
+      setPrayerLog(d.prayerLog);
+      persist(PRAYER_LOG_KEY, d.prayerLog);
+    }
     if (Array.isArray(d.playlists)) {
       setPlaylists(d.playlists);
       persist(PLAYLISTS_KEY, d.playlists);
@@ -244,6 +284,8 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
       markWirdDone,
       newKhatma,
       playlists,
+      prayerLog,
+      togglePrayed,
       createPlaylist,
       renamePlaylist,
       deletePlaylist,
@@ -254,7 +296,7 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
       importData,
       ready,
     }),
-    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, playlists, createPlaylist, renamePlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist, movePlaylistItem, exportData, importData, ready]
+    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, playlists, prayerLog, togglePrayed, createPlaylist, renamePlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist, movePlaylistItem, exportData, importData, ready]
   );
 
   return <ReadingContext.Provider value={value}>{children}</ReadingContext.Provider>;

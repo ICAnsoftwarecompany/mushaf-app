@@ -27,17 +27,18 @@ SplashScreen.preventAutoHideAsync();
 /** إعادة جدولة الإشعارات لما الإعدادات تتغير أو التطبيق يرجع للواجهة */
 function NotificationsSync() {
   const { settings, ready } = useSettings();
+  const { prayerLog } = useReading();
   useEffect(() => {
     if (!ready) return;
-    const t = setTimeout(() => rescheduleAll(settings).catch(() => {}), 800);
+    const t = setTimeout(() => rescheduleAll(settings, prayerLog).catch(() => {}), 800);
     return () => clearTimeout(t);
-  }, [settings, ready]);
+  }, [settings, prayerLog, ready]);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (st) => {
-      if (st === 'active' && ready) rescheduleAll(settings).catch(() => {});
+      if (st === 'active' && ready) rescheduleAll(settings, prayerLog).catch(() => {});
     });
     return () => sub.remove();
-  }, [settings, ready]);
+  }, [settings, prayerLog, ready]);
   return null;
 }
 

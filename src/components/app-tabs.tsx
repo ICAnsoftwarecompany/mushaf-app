@@ -39,6 +39,8 @@ export default function AppTabs() {
     <NativeTabs
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundSelected}
+      // اسم كل صفحة تحت أيقونتها على طول (مش للتاب المختار بس)
+      labelVisibilityMode="labeled"
       labelStyle={{ selected: { color: colors.accent } }}>
       {ordered}
     </NativeTabs>

@@ -352,6 +352,7 @@ const ICONS = {
   calendar: ['calendar', 'calendar_today'],
   person: ['person.wave.2.fill', 'record_voice_over'],
   headphones: ['headphones', 'headphones'],
+  checkmark: ['checkmark', 'check'],
   plus: ['plus', 'add'],
   trash: ['trash', 'delete'],
   up: ['chevron.up', 'keyboard_arrow_up'],

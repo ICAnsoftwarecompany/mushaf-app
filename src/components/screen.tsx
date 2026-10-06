@@ -14,6 +14,8 @@ import { useMushafTheme } from '@/theme/ThemeContext';
 
 interface Props {
   title: string;
+  /** بديل مرسوم للعنوان (زي لوجو «يتلو» في الصفحة الرئيسية) — title بيفضل للقارئ الشاشة */
+  titleNode?: React.ReactNode;
   subtitle?: string;
   /** شاشة فرعية: بيظهر زرار رجوع والعنوان أصغر */
   back?: boolean;
@@ -22,7 +24,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-export function Screen({ title, subtitle, back, actions, children }: Props) {
+export function Screen({ title, titleNode, subtitle, back, actions, children }: Props) {
   const { theme } = useMushafTheme();
   const { t, dir } = useI18n();
   const c = theme.colors;
@@ -45,9 +47,15 @@ export function Screen({ title, subtitle, back, actions, children }: Props) {
             </Pressable>
           )}
           <View style={{ flex: 1, gap: 2 }}>
-            <Txt size={back ? 22 : 28} weight="bold" accessibilityRole="header">
-              {title}
-            </Txt>
+            {titleNode ? (
+              <View accessible accessibilityRole="header" accessibilityLabel={title}>
+                {titleNode}
+              </View>
+            ) : (
+              <Txt size={back ? 22 : 28} weight="bold" accessibilityRole="header">
+                {title}
+              </Txt>
+            )}
             {subtitle ? (
               <Txt size={13} color="textSecondary">
                 {subtitle}
