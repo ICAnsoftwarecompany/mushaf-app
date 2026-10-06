@@ -362,6 +362,14 @@ export default function SettingsScreen() {
               <TimeStepper value={s.wirdTime} onChange={(v) => update({ wirdTime: v })} />
             </SettingRow>
           )}
+          <SettingRow icon="heart" label={t('notifyGaza')}>
+            <Toggle label={t('notifyGaza')} value={s.notifyGaza} onChange={(v) => setNotify({ notifyGaza: v })} />
+          </SettingRow>
+          {s.notifyGaza && (
+            <SettingRow label={t('gazaDuas')}>
+              <TimeStepper value={s.gazaTime} onChange={(v) => update({ gazaTime: v })} />
+            </SettingRow>
+          )}
           <SettingRow icon="tasbih" label={t('notifyTasbih')}>
             <Toggle label={t('notifyTasbih')} value={s.notifyTasbih} onChange={(v) => setNotify({ notifyTasbih: v })} />
           </SettingRow>

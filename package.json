@@ -63,7 +63,9 @@
     "build:web": "expo export --platform web && workbox generateSW workbox-config.cjs",
     "serve:web": "npx serve dist",
     "build:extra-data": "node scripts/build-extra-data.mjs",
-    "test": "node --test scripts/tests/*.test.mjs"
+    "test": "node --test scripts/tests/*.test.mjs",
+    "build:apk": "npx eas-cli@latest build --platform android --profile preview",
+    "docs:docx": "pandoc docs/REFERENCE.md -o docs/yatlu-reference.docx --toc -M lang=ar -M dir=rtl && python3 scripts/docx-rtl.py docs/yatlu-reference.docx"
   },
   "private": true
 }

@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { Card, Icon, Row, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
 import { azkarCategories, featuredCategories } from '@/data/azkar';
+import { GAZA_CATEGORY_ID } from '@/data/gaza-duas';
 import { useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
@@ -22,11 +23,30 @@ export default function AzkarScreen() {
   return (
     <Screen title={t('tabAzkar')} subtitle={isAr ? t('azkarSubtitle') : `${t('azkarSubtitle')} · ${t('azkarArabicOnly')}`}>
       <FlatList
-        data={azkarCategories.filter((x) => !featuredCategories.includes(x))}
+        data={azkarCategories.filter((x) => !featuredCategories.includes(x) && x.id !== GAZA_CATEGORY_ID)}
         keyExtractor={(x) => String(x.id)}
         contentContainerStyle={{ paddingBottom: BottomTabInset + 24 }}
         ListHeaderComponent={
           <View style={styles.grid}>
+            {/* الدعاء لغزة */}
+            <Pressable onPress={() => open(GAZA_CATEGORY_ID)} accessibilityRole="button" style={{ width: '100%' }}>
+              {({ pressed }) => (
+                <Card style={{ opacity: pressed ? 0.8 : 1, backgroundColor: c.highlight, borderColor: c.accent }}>
+                  <Row style={{ gap: 12 }}>
+                    <Icon name="heart" size={26} color={c.accent} />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Txt size={17} weight="bold">
+                        {t('gazaDuas')}
+                      </Txt>
+                      <Txt size={13} color="textSecondary">
+                        {t('gazaDuasHint')}
+                      </Txt>
+                    </View>
+                    <Icon name="chevron" size={18} color={c.textSecondary} />
+                  </Row>
+                </Card>
+              )}
+            </Pressable>
             {featuredCategories.map((cat) => (
               <Pressable key={cat.id} onPress={() => open(cat.id)} accessibilityRole="button" style={styles.tile}>
                 {({ pressed }) => (

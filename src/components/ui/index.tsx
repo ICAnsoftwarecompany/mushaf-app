@@ -353,6 +353,7 @@ const ICONS = {
   person: ['person.wave.2.fill', 'record_voice_over'],
   headphones: ['headphones', 'headphones'],
   checkmark: ['checkmark', 'check'],
+  heart: ['heart.fill', 'favorite'],
   plus: ['plus', 'add'],
   trash: ['trash', 'delete'],
   up: ['chevron.up', 'keyboard_arrow_up'],

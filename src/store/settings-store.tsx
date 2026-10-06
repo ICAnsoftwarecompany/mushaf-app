@@ -78,6 +78,9 @@ export interface Settings {
   notifyMissedPrayer: boolean;
   missedReminderMin: number;
   notifyTasbih: boolean;
+  /** «لا تنسَ غزة في دعائك» */
+  notifyGaza: boolean;
+  gazaTime: string;
   tasbihTime: string;
   /** تذكير «وقفت عند صفحة كذا» لو ما قريتش النهارده */
   notifyLastRead: boolean;
@@ -142,6 +145,8 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyMissedPrayer: true,
   missedReminderMin: 30,
   notifyTasbih: true,
+  notifyGaza: true,
+  gazaTime: '20:00',
   tasbihTime: '21:00',
   notifyLastRead: true,
   lastReadTime: '21:30',

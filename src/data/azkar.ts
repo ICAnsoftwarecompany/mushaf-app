@@ -18,9 +18,12 @@ export interface AzkarCategory {
 }
 
  
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { gazaCategory } = require('./gaza-duas') as typeof import('./gaza-duas');
 const data: { categories: AzkarCategory[] } = require('./azkar.json');
 
-export const azkarCategories = data.categories;
+/** مجموعة «الدعاء لغزة» (مكتوبة بالإيد) + أقسام حصن المسلم */
+export const azkarCategories: AzkarCategory[] = [gazaCategory, ...data.categories];
 export const getCategory = (id: number) => azkarCategories.find((c) => c.id === id);
 
 /** الأقسام الأساسية اللي بتظهر فوق */

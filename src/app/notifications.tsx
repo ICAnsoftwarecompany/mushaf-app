@@ -25,6 +25,7 @@ const KIND_ICON: Record<NotifKind, IconName> = {
   kahf: 'calendar',
   tasbih: 'tasbih',
   lastRead: 'bookmark',
+  gaza: 'heart',
 };
 
 type ListRow = { k: 'day'; label: string } | { k: 'item'; item: PlannedNotif };

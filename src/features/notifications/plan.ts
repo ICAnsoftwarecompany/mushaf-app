@@ -8,12 +8,13 @@
  */
 import { getSurah, surahsOfPage } from '@/data/quran';
 import { featuredCategories } from '@/data/azkar';
+import { GAZA_CATEGORY_ID } from '@/data/gaza-duas';
 import { computeTimes, locationLabel } from '@/features/prayer/prayer';
 import { translate } from '@/i18n';
 import { type Khatma, type LastRead, type PrayerLog, type Salah, todayKey } from '@/store/reading-store';
 import type { Settings } from '@/store/settings-store';
 
-export type NotifKind = 'adhan' | 'pre' | 'missed' | 'azkarMorning' | 'azkarEvening' | 'wird' | 'kahf' | 'tasbih' | 'lastRead';
+export type NotifKind = 'adhan' | 'pre' | 'missed' | 'azkarMorning' | 'azkarEvening' | 'wird' | 'kahf' | 'tasbih' | 'lastRead' | 'gaza';
 
 export interface PlannedNotif {
   id: string; // ثابت لنفس التنبيه (مثلًا adhan:2026-10-06:fajr)
@@ -101,6 +102,9 @@ export function planNotifications(
     }
     if (s.notifyWird && ctx.khatma.nextPage <= 604 && ctx.khatma.lastDoneDay !== day) {
       out.push({ id: `wird:${day}`, kind: 'wird', at: at(date, s.wirdTime), title: t('notifWirdTitle'), body: t('notifWirdBody'), route: `/mushaf/${ctx.khatma.nextPage}`, day });
+    }
+    if (s.notifyGaza) {
+      out.push({ id: `gaza:${day}`, kind: 'gaza', at: at(date, s.gazaTime), title: t('notifGazaTitle'), body: t('notifGazaBody'), route: `/azkar/${GAZA_CATEGORY_ID}`, day });
     }
     if (s.notifyTasbih) {
       out.push({ id: `tasbih:${day}`, kind: 'tasbih', at: at(date, s.tasbihTime), title: t('notifTasbihTitle'), body: t('notifTasbihBody'), route: '/tasbih', day });

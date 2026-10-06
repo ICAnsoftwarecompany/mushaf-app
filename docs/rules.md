@@ -76,6 +76,7 @@
 | خطوات التشغيل أو مكتبة جديدة أو مشكلة اتحلت | [setup.md](setup.md) |
 | البناء أو النشر أو إعدادات منصة (`app.json`، `eas.json`، الويب) | [platforms.md](platforms.md) |
 | خلصت مرحلة أو قررت حاجة جديدة | [roadmap.md](roadmap.md) |
+| ميزة أو شاشة أو نظام | [REFERENCE.md](REFERENCE.md) + `npm run docs:docx` |
 | **أي تغيير** | سطر في [changelog.md](changelog.md) + «آخر تحديث» في [README.md](README.md) |
 | قاعدة | الملف ده |
 
