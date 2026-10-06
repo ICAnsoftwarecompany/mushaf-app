@@ -62,6 +62,14 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "يتلو — المصحف الشريف برواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت"
+    "description": "يتلو — المصحف الشريف برواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت",
+    "extra": {
+      "adhanSound": false,
+      "router": {},
+      "eas": {
+        "projectId": "8817d3ac-af3d-429e-8d06-e58f741e872d"
+      }
+    },
+    "owner": "moumenhafez"
   }
 }
