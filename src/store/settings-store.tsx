@@ -106,7 +106,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showIntro: true,
   haptics: true,
   keepAwake: true,
-  nightByPrayer: true,
+  nightByPrayer: false, // المستخدم يفعّله لو عايز الغامق بعد المغرب
 
   mushafMode: 'pages',
   mushafScale: 5,

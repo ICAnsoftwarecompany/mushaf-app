@@ -193,4 +193,5 @@ export const themeList: MushafTheme[] = Object.values(themes);
 // الثيم اللي يتطبق لما المستخدم يختار "تلقائي"
 export const SYSTEM_LIGHT: ThemeId = 'classic';
 export const SYSTEM_DARK: ThemeId = 'night';
-export const DEFAULT_MODE: ThemeMode = 'system';
+/** أول تشغيل: الثيم الفاتح العادي (مش حسب الموبايل) — الغامق بس لو المستخدم اختاره أو فعّل الوضع الليلي */
+export const DEFAULT_MODE: ThemeMode = 'classic';
