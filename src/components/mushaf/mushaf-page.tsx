@@ -277,7 +277,7 @@ function MushafPageView({
       </View>
 
       {!widths && (
-        <View style={styles.measureLayer} pointerEvents="none">
+        <View style={[styles.measureLayer, { pointerEvents: 'none' }]}>
           {lines.map(({ line, words }, i) =>
             line[0] === 'w' ? (
               <View

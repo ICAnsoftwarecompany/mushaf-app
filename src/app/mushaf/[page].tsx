@@ -311,7 +311,7 @@ export default function MushafScreen() {
       {selectedAyah === null && <AudioBar />}
 
       {notice && (
-        <View style={[styles.notice, { backgroundColor: c.text }]} pointerEvents="none">
+        <View style={[styles.notice, { backgroundColor: c.text, pointerEvents: 'none' }]}>
           <Txt size={14} color={c.background} align="center">
             {notice}
           </Txt>
