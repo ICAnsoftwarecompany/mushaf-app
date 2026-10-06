@@ -9,11 +9,11 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
-const TABS: { name: string; href: '/' | '/prayer' | '/azkar' | '/search' | '/settings'; label: 'tabMushaf' | 'tabPrayer' | 'tabAzkar' | 'tabSearch' | 'tabSettings'; icon: IconName }[] = [
+const TABS: { name: string; href: '/' | '/prayer' | '/azkar' | '/listen' | '/settings'; label: 'tabMushaf' | 'tabPrayer' | 'tabAzkar' | 'tabListen' | 'tabSettings'; icon: IconName }[] = [
   { name: 'index', href: '/', label: 'tabMushaf', icon: 'book' },
   { name: 'prayer', href: '/prayer', label: 'tabPrayer', icon: 'clock' },
   { name: 'azkar', href: '/azkar', label: 'tabAzkar', icon: 'sparkles' },
-  { name: 'search', href: '/search', label: 'tabSearch', icon: 'search' },
+  { name: 'listen', href: '/listen', label: 'tabListen', icon: 'headphones' },
   { name: 'settings', href: '/settings', label: 'tabSettings', icon: 'gear' },
 ];
 

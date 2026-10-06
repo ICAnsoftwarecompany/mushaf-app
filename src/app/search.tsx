@@ -8,7 +8,6 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
 import { Txt } from '@/components/ui';
-import { BottomTabInset } from '@/constants/theme';
 import { ayahNumber, ayahs, pageOfAyah, surahLabel, surahOfAyah } from '@/data/quran';
 import { searchQuran } from '@/data/quran/search';
 import { ARABIC_DIR, useI18n } from '@/i18n';
@@ -23,7 +22,7 @@ export default function SearchScreen() {
   const { results, total } = useMemo(() => searchQuran(deferred), [deferred]);
 
   return (
-    <Screen title={t('tabSearch')} subtitle={t('searchSubtitle')}>
+    <Screen title={t('tabSearch')} subtitle={t('searchSubtitle')} back>
       <View style={styles.inputWrap}>
         <TextInput
           value={query}
@@ -78,6 +77,6 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   inputWrap: { paddingHorizontal: 16, gap: 6, paddingBottom: 8 },
   input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 17 },
-  list: { paddingBottom: BottomTabInset + 24 },
+  list: { paddingBottom: 24 },
   result: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, gap: 4 },
 });

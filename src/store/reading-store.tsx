@@ -1,5 +1,5 @@
 /**
- * حالة القراءة: آخر صفحة اتقرت + العلامات المحفوظة + الختمة والورد اليومي.
+ * حالة القراءة: آخر صفحة اتقرت + العلامات المحفوظة + الختمة والورد اليومي + قوايم الاستماع.
  * كله بيتخزن على الجهاز (أوفلاين) بـ AsyncStorage.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,15 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 const LAST_READ_KEY = 'mushaf.lastRead';
 const BOOKMARKS_KEY = 'mushaf.bookmarks';
 const KHATMA_KEY = 'yatlu.khatma';
+const PLAYLISTS_KEY = 'yatlu.playlists';
+
+/** قايمة استماع: سور بترتيب يختاره المستخدم */
+export interface Playlist {
+  id: string;
+  name: string;
+  surahs: number[];
+  createdAt: number;
+}
 
 /** الختمة والورد اليومي */
 export interface Khatma {
@@ -44,11 +53,20 @@ interface ReadingContextValue {
   khatma: Khatma;
   markWirdDone: (pagesPerDay: number) => void;
   newKhatma: () => void;
+  playlists: Playlist[];
+  createPlaylist: (name: string, surahs?: number[]) => string;
+  renamePlaylist: (id: string, name: string) => void;
+  deletePlaylist: (id: string) => void;
+  addToPlaylist: (id: string, surah: number) => void;
+  removeFromPlaylist: (id: string, index: number) => void;
+  movePlaylistItem: (id: string, from: number, to: number) => void;
   /** للنسخ الاحتياطي */
-  exportData: () => { lastRead: LastRead | null; bookmarks: Bookmark[]; khatma: Khatma };
-  importData: (d: { lastRead?: LastRead | null; bookmarks?: Bookmark[]; khatma?: Khatma }) => void;
+  exportData: () => ExportedData;
+  importData: (d: Partial<ExportedData>) => void;
   ready: boolean;
 }
+
+type ExportedData = { lastRead: LastRead | null; bookmarks: Bookmark[]; khatma: Khatma; playlists: Playlist[] };
 
 const ReadingContext = createContext<ReadingContextValue | null>(null);
 
@@ -60,17 +78,20 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
   const [lastRead, setLastRead] = useState<LastRead | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [khatma, setKhatma] = useState<Khatma>(NEW_KHATMA);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [ready, setReady] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [lr, bm, kh] = await Promise.all([
+        const [lr, bm, kh, pl] = await Promise.all([
           AsyncStorage.getItem(LAST_READ_KEY),
           AsyncStorage.getItem(BOOKMARKS_KEY),
           AsyncStorage.getItem(KHATMA_KEY),
+          AsyncStorage.getItem(PLAYLISTS_KEY),
         ]);
+        if (pl) setPlaylists(JSON.parse(pl));
         if (lr) setLastRead(JSON.parse(lr));
         if (bm) setBookmarks(JSON.parse(bm));
         if (kh) setKhatma({ ...NEW_KHATMA(), ...JSON.parse(kh) });
@@ -149,9 +170,52 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const exportData = useCallback(() => ({ lastRead, bookmarks, khatma }), [lastRead, bookmarks, khatma]);
+  const updatePlaylists = useCallback((fn: (prev: Playlist[]) => Playlist[]) => {
+    setPlaylists((prev) => {
+      const next = fn(prev);
+      persist(PLAYLISTS_KEY, next);
+      return next;
+    });
+  }, []);
+  const editPlaylist = useCallback(
+    (id: string, fn: (p: Playlist) => Playlist) => updatePlaylists((prev) => prev.map((p) => (p.id === id ? fn(p) : p))),
+    [updatePlaylists]
+  );
 
-  const importData = useCallback((d: { lastRead?: LastRead | null; bookmarks?: Bookmark[]; khatma?: Khatma }) => {
+  const createPlaylist = useCallback(
+    (name: string, surahs: number[] = []) => {
+      const id = `pl${Date.now().toString(36)}`;
+      updatePlaylists((prev) => [...prev, { id, name: name.trim() || '—', surahs, createdAt: Date.now() }]);
+      return id;
+    },
+    [updatePlaylists]
+  );
+  const renamePlaylist = useCallback((id: string, name: string) => editPlaylist(id, (p) => ({ ...p, name: name.trim() || p.name })), [editPlaylist]);
+  const deletePlaylist = useCallback((id: string) => updatePlaylists((prev) => prev.filter((p) => p.id !== id)), [updatePlaylists]);
+  const addToPlaylist = useCallback((id: string, surah: number) => editPlaylist(id, (p) => ({ ...p, surahs: [...p.surahs, surah] })), [editPlaylist]);
+  const removeFromPlaylist = useCallback(
+    (id: string, index: number) => editPlaylist(id, (p) => ({ ...p, surahs: p.surahs.filter((_, i) => i !== index) })),
+    [editPlaylist]
+  );
+  const movePlaylistItem = useCallback(
+    (id: string, from: number, to: number) =>
+      editPlaylist(id, (p) => {
+        if (to < 0 || to >= p.surahs.length) return p;
+        const surahs = [...p.surahs];
+        const [x] = surahs.splice(from, 1);
+        surahs.splice(to, 0, x);
+        return { ...p, surahs };
+      }),
+    [editPlaylist]
+  );
+
+  const exportData = useCallback(() => ({ lastRead, bookmarks, khatma, playlists }), [lastRead, bookmarks, khatma, playlists]);
+
+  const importData = useCallback((d: Partial<ExportedData>) => {
+    if (Array.isArray(d.playlists)) {
+      setPlaylists(d.playlists);
+      persist(PLAYLISTS_KEY, d.playlists);
+    }
     if (d.lastRead !== undefined) {
       setLastRead(d.lastRead);
       persist(LAST_READ_KEY, d.lastRead);
@@ -179,11 +243,18 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
       khatma,
       markWirdDone,
       newKhatma,
+      playlists,
+      createPlaylist,
+      renamePlaylist,
+      deletePlaylist,
+      addToPlaylist,
+      removeFromPlaylist,
+      movePlaylistItem,
       exportData,
       importData,
       ready,
     }),
-    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, exportData, importData, ready]
+    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, playlists, createPlaylist, renamePlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist, movePlaylistItem, exportData, importData, ready]
   );
 
   return <ReadingContext.Provider value={value}>{children}</ReadingContext.Provider>;

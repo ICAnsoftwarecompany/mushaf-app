@@ -23,9 +23,11 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     ├── app/                     الشاشات (Expo Router) — كل ملف = شاشة
     │   ├── _layout.tsx          الجذر: الـ Providers + الخطوط + الشاشة الافتتاحية + جدولة الإشعارات
     │   ├── +html.tsx            قالب HTML للويب (PWA، service worker)
-    │   ├── (tabs)/              التابات: index (المصحف)، prayer، azkar، search، settings
+    │   ├── (tabs)/              التابات: index (المصحف)، prayer، azkar، listen، settings
     │   ├── mushaf/[page].tsx    القارئ (+ generateStaticParams للويب)
     │   ├── azkar/[id].tsx       قسم أذكار بعدّادات
+    │   ├── search.tsx           البحث
+    │   ├── playlist.tsx         قايمة استماع (?id=)
     │   ├── bookmarks.tsx        العلامات
     │   ├── goto.tsx             الانتقال لصفحة أو آية
     │   ├── qibla.tsx            اتجاه القبلة
@@ -41,6 +43,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── app-tabs.tsx         التابات الأصلية (موبايل)
     │   ├── app-tabs.web.tsx     شريط التابات (ويب)
     │   ├── brand/intro-screen.tsx   الشاشة الافتتاحية
+    │   ├── listen/              الاستماع: now-playing، list-row، download-button، add-to-playlist، name-prompt
     │   └── mushaf/
     │       ├── mushaf-page.tsx      صفحة بسطورها الـ 15 (+ التجويد والهامش والأحزاب)
     │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList، صفحة أو صفحتين)
@@ -61,7 +64,8 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   └── *.json               بيانات مولّدة — ممنوع التعديل بالإيد
     ├── features/
     │   ├── prayer/              مواقيت الصلاة، القبلة، المدن، التاريخ الهجري، تحديد الموقع
-    │   ├── audio/               مشغّل التلاوة، القرّاء، التحميل للاستماع بدون إنترنت
+    │   ├── audio/               audio-store (المشغّل + طابور السور + البسملة)، reciters، offline (ملفات الجهاز)،
+    │   │                        downloads (طابور التحميل المشترك + useDownloads)
     │   ├── notifications/       جدولة الإشعارات المحلية (موبايل) — الويب فاضي
     │   └── backup*.ts           النسخ الاحتياطي (موبايل / ويب)
     ├── i18n/
@@ -69,7 +73,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   └── index.ts             useI18n(): t، lang، dir، num
     ├── store/
     │   ├── settings-store.tsx   كل الإعدادات
-    │   └── reading-store.tsx    آخر صفحة + العلامات + الختمة والورد
+    │   └── reading-store.tsx    آخر صفحة + العلامات + الختمة والورد + قوايم الاستماع
     ├── hooks/use-theme.ts       ألوان الثيم الحالي (للتابات)
     └── theme/
         ├── theme.ts             الـ 7 ثيمات وألوان التجويد
@@ -97,8 +101,9 @@ SettingsProvider         كل الإعدادات (اللغة، الخطوط، ا
 | `mushaf.lastRead` | `{ page, at }` | `reading-store.tsx` |
 | `mushaf.bookmarks` | `{ id, page, ayahId?, createdAt }[]` | `reading-store.tsx` |
 | `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
+| `yatlu.playlists` | `{ id, name, surahs[], createdAt }[]` (داخلة في النسخة الاحتياطية) | `reading-store.tsx` |
 
-ملفات التلاوة المتحمّلة: `<Documents>/audio/<القارئ>/<SSSAAA>.mp3` (موبايل بس).
+ملفات التلاوة المتحمّلة: `<Documents>/audio/<القارئ>/<SSSAAA>.mp3` (موبايل بس). تحميل السورة بيشمل `001001.mp3` (البسملة). التحميل بيتكتب في `.part` الأول وبعدين يتنقل، علشان ملف ناقص ما يتحسبش متحمّل.
 
 ## المكتبات
 

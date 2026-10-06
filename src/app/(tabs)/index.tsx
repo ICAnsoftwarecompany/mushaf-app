@@ -48,6 +48,7 @@ export default function IndexScreen() {
       subtitle={t('indexSubtitle')}
       actions={
         <>
+          <HeaderButton icon="search" label={t('tabSearch')} onPress={() => router.push('/search')} />
           <HeaderButton icon="goto" label={t('goTo')} onPress={() => router.push('/goto')} />
           <HeaderButton icon="bookmark" label={t('bookmarks')} onPress={() => router.push('/bookmarks')} />
         </>

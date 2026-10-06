@@ -1,13 +1,14 @@
 /**
  * شريط التلاوة: القارئ + السابقة/تشغيل/التالية/إيقاف + التكرار + تحميل السورة.
  */
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon, type IconName, Row, Txt } from '@/components/ui';
 import { ayahNumber, surahLabel, surahOfAyah } from '@/data/quran';
 import { useAudio } from '@/features/audio/audio-store';
-import { canDownload, downloadSurah, isSurahDownloaded } from '@/features/audio/offline';
+import { cancelDownload, jobKey, startDownload, surahFiles, useDownloads } from '@/features/audio/downloads';
+import { canDownload } from '@/features/audio/offline';
 import { reciterById } from '@/features/audio/reciters';
 import { useI18n } from '@/i18n';
 import { useSettings } from '@/store/settings-store';
@@ -19,21 +20,17 @@ export function AudioBar() {
   const { theme } = useMushafTheme();
   const { settings, update } = useSettings();
   const c = theme.colors;
-  const [progress, setProgress] = useState<number | null>(null);
-  const cancel = useRef(false);
+  const dl = useDownloads(settings.reciter);
 
   if (audio.ayahId == null) return null;
   const s = surahOfAyah(audio.ayahId);
   const reciter = reciterById(settings.reciter);
-  const downloaded = canDownload && isSurahDownloaded(settings.reciter, s.id);
-
-
-  const download = async () => {
-    cancel.current = false;
-    setProgress(0);
-    await downloadSurah(settings.reciter, s.id, (f) => setProgress(f), () => cancel.current);
-    setProgress(null);
-  };
+  const key = jobKey(settings.reciter, 's', s.id);
+  const files = surahFiles(s.id);
+  const downloaded = dl.isComplete(files);
+  const job = dl.job(key);
+  const progress = job ? job.done / job.files.length : null;
+  const download = () => startDownload(key, settings.reciter, files);
 
   return (
     <View style={[styles.bar, { backgroundColor: c.surface, borderColor: c.border }]}>
@@ -79,9 +76,7 @@ export function AudioBar() {
             </View>
           ) : progress != null ? (
             <Pressable
-              onPress={() => {
-                cancel.current = true;
-              }}
+              onPress={() => cancelDownload(key)}
               style={styles.ctrl}
               accessibilityLabel={t('cancel')}>
               <Txt size={11} color="accent">{`${Math.round(progress * 100)}%`}</Txt>

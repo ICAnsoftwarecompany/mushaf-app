@@ -351,6 +351,14 @@ const ICONS = {
   tasbih: ['circle.grid.cross', 'radio_button_checked'],
   calendar: ['calendar', 'calendar_today'],
   person: ['person.wave.2.fill', 'record_voice_over'],
+  headphones: ['headphones', 'headphones'],
+  plus: ['plus', 'add'],
+  trash: ['trash', 'delete'],
+  up: ['chevron.up', 'keyboard_arrow_up'],
+  down: ['chevron.down', 'keyboard_arrow_down'],
+  pencil: ['pencil', 'edit'],
+  playlist: ['music.note.list', 'queue_music'],
+  playlistAdd: ['text.badge.plus', 'playlist_add'],
 } as const;
 
 export type IconName = keyof typeof ICONS;

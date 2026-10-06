@@ -4,8 +4,6 @@
  */
 import { Directory, File, Paths } from 'expo-file-system';
 
-import { getSurah } from '@/data/quran';
-
 import { ayahFileName, ayahUrl } from './reciters';
 
 const root = () => new Directory(Paths.document, 'audio');
@@ -20,34 +18,59 @@ export function localAyahUri(reciter: string, surah: number, ayah: number): stri
   }
 }
 
-export function isSurahDownloaded(reciter: string, surah: number): boolean {
-  const n = getSurah(surah).ayahs;
-  for (let a = 1; a <= n; a++) if (!localAyahUri(reciter, surah, a)) return false;
-  return true;
+/** أسماء الملفات المتحمّلة للقارئ (قراءة واحدة للفولدر بدل ما نسأل عن كل ملف) */
+export function downloadedNames(reciter: string): Set<string> {
+  try {
+    const d = dirFor(reciter);
+    if (!d.exists) return new Set();
+    return new Set(d.list().map((e) => e.name));
+  } catch {
+    return new Set();
+  }
 }
 
-export async function downloadSurah(
-  reciter: string,
-  surah: number,
-  onProgress: (fraction: number) => void,
-  shouldCancel: () => boolean = () => false
-): Promise<boolean> {
+export async function downloadAyahFile(reciter: string, surah: number, ayah: number): Promise<boolean> {
   const dir = dirFor(reciter);
   dir.create({ intermediates: true, idempotent: true });
-  const n = getSurah(surah).ayahs;
-  for (let a = 1; a <= n; a++) {
-    if (shouldCancel()) return false;
-    const f = new File(dir, ayahFileName(surah, a));
-    if (!f.exists) {
-      try {
-        await File.downloadFileAsync(ayahUrl(reciter, surah, a), f);
-      } catch {
-        return false;
-      }
-    }
-    onProgress(a / n);
+  const f = new File(dir, ayahFileName(surah, ayah));
+  if (f.exists) return true;
+  const tmp = new File(dir, `${ayahFileName(surah, ayah)}.part`);
+  try {
+    if (tmp.exists) tmp.delete();
+    await File.downloadFileAsync(ayahUrl(reciter, surah, ayah), tmp);
+    tmp.move(f);
+    return true;
+  } catch {
+    try {
+      if (tmp.exists) tmp.delete();
+    } catch {}
+    return false;
   }
-  return true;
+}
+
+export function deleteFiles(reciter: string, names: string[]) {
+  const dir = dirFor(reciter);
+  for (const n of names) {
+    try {
+      const f = new File(dir, n);
+      if (f.exists) f.delete();
+    } catch {}
+  }
+}
+
+/** الحجم المستخدم بالبايت لكل القرّاء */
+export function totalDownloadedBytes(): number {
+  try {
+    const r = root();
+    if (!r.exists) return 0;
+    let total = 0;
+    for (const d of r.list()) {
+      if (d instanceof Directory) for (const f of d.list()) if (f instanceof File) total += f.size ?? 0;
+    }
+    return total;
+  } catch {
+    return 0;
+  }
 }
 
 export const canDownload = true;

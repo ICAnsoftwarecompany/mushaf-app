@@ -22,9 +22,9 @@ export default function AppTabs() {
       <NativeTabs.Trigger.Label>{t('tabAzkar')}</NativeTabs.Trigger.Label>
       <NativeTabs.Trigger.Icon sf="sparkles" md="auto_awesome" />
     </NativeTabs.Trigger>,
-    <NativeTabs.Trigger key="search" name="search">
-      <NativeTabs.Trigger.Label>{t('tabSearch')}</NativeTabs.Trigger.Label>
-      <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
+    <NativeTabs.Trigger key="listen" name="listen">
+      <NativeTabs.Trigger.Label>{t('tabListen')}</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger.Icon sf="headphones" md="headphones" />
     </NativeTabs.Trigger>,
     <NativeTabs.Trigger key="settings" name="settings">
       <NativeTabs.Trigger.Label>{t('tabSettings')}</NativeTabs.Trigger.Label>
