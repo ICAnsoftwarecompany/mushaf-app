@@ -46,7 +46,7 @@ function NotificationsSync() {
     const clock = setInterval(refreshInboxClock, 60000);
     const unTap = onNotificationTap((route, id) => {
       if (id) markRead(id);
-      router.push(route as never);
+      if (route) router.push(route as never);
     });
     return () => {
       sub.remove();

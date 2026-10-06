@@ -3,8 +3,9 @@
  * بيتعاد جدولتها كل ما الإعدادات أو الفروض أو القراءة تتغير، أو التطبيق يتفتح.
  * iOS بيسمح بـ 64 إشعار مجدول بس، فبنجدول أقرب 60.
  *
- * صوت الأذان الكامل: لو ملف assets/sounds/adhan.wav موجود وقت البناء، app.config.js
- * بيضيفه للتطبيق وبيعلّم extra.adhanSound، وقناة «الأذان» بتستخدمه حتى والتطبيق مقفول.
+ * صوت الأذان: app.config.js بيضيف assets/sounds/adhan.mp3 (أندرويد، كامل) و adhan_short.wav (iOS، أقل من ٣٠ ث)
+ * وبيعلّم extra.adhanSound، وقناة «الأذان» بتستخدمه حتى والتطبيق مقفول.
+ * إشعار الأذان فيه زرارين: «كتم» (بيوقف الصوت) و«الإعدادات» (بيفتح شرح القفل في الإعدادات).
  */
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import type * as NotificationsModule from 'expo-notifications';
@@ -22,11 +23,13 @@ export const isExpoGoAndroid =
   Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 export const notificationsSupported = !isExpoGoAndroid;
 /** ملف الأذان الكامل اتضاف للتطبيق وقت البناء */
-export const adhanSoundAvailable = Constants.expoConfig?.extra?.adhanSound === true;
+const soundFlags = Constants.expoConfig?.extra?.adhanSound as { android?: boolean; ios?: boolean } | undefined;
+export const adhanSoundAvailable = Platform.OS === 'ios' ? !!soundFlags?.ios : !!soundFlags?.android;
 
-const ADHAN_FILE = 'adhan.wav';
+const ADHAN_FILE = Platform.OS === 'ios' ? 'adhan_short.wav' : 'adhan.mp3';
+const ADHAN_CATEGORY = 'adhan';
 // قنوات أندرويد (صوت القناة مينفعش يتغير بعد إنشائها، فلكل صوت قناة)
-const CH_ADHAN = adhanSoundAvailable ? 'adhan-full' : 'adhan';
+const CH_ADHAN = adhanSoundAvailable ? 'adhan-full-v2' : 'adhan';
 const CH_ADHAN_SILENT = 'adhan-silent';
 const CH_PRAYER = 'prayer-alerts';
 const CH_REMINDERS = 'reminders';
@@ -90,10 +93,33 @@ export async function ensurePermission(): Promise<boolean> {
   return res.granted;
 }
 
+/** زرارين إشعار الأذان — بيتسجّلوا كل مرة علشان أسماءهم تتبع لغة التطبيق */
+async function registerAdhanActions(N: typeof NotificationsModule, lang: Settings['language']) {
+  const ar = lang === 'ar';
+  await N.setNotificationCategoryAsync(ADHAN_CATEGORY, [
+    { identifier: 'mute', buttonTitle: ar ? 'كتم' : 'Mute', options: { opensAppToForeground: false } },
+    { identifier: 'settings', buttonTitle: ar ? 'الإعدادات' : 'Settings', options: { opensAppToForeground: true } },
+  ]).catch(() => {});
+}
+
+/** إيقاف صوت الأذان: شيل إشعاراته الظاهرة (أندرويد بيوقف الصوت لما الإشعار يتشال) */
+export async function muteAdhan(id?: string): Promise<void> {
+  const N = load();
+  if (!N) return;
+  if (id) await N.dismissNotificationAsync(id).catch(() => {});
+  else {
+    const shown = await N.getPresentedNotificationsAsync().catch(() => []);
+    await Promise.all(
+      shown.filter((n) => n.request.identifier.startsWith('adhan:')).map((n) => N.dismissNotificationAsync(n.request.identifier).catch(() => {}))
+    );
+  }
+}
+
 export async function scheduleOnDevice(plan: PlannedNotif[], s: Settings): Promise<void> {
   const N = load();
   if (!N) return;
   await configure(N);
+  await registerAdhanActions(N, s.language);
   await N.cancelAllScheduledNotificationsAsync();
   const perm = await N.getPermissionsAsync();
   if (!perm.granted) return;
@@ -107,7 +133,15 @@ export async function scheduleOnDevice(plan: PlannedNotif[], s: Settings): Promi
       const sound = adhan ? (s.adhanSound ? (adhanSoundAvailable ? ADHAN_FILE : 'default') : undefined) : 'default';
       return N.scheduleNotificationAsync({
         identifier: p.id,
-        content: { title: p.title, body: p.body, sound, data: { route: p.route, id: p.id } },
+        content: {
+          title: p.title,
+          body: p.body,
+          sound,
+          data: { route: p.route, id: p.id },
+          ...(adhan ? { categoryIdentifier: ADHAN_CATEGORY } : {}),
+          // الأذان والتنبيه قبله والفروض: أولوية عالية علشان يظهروا فوق الشاشة
+          ...(adhan || p.kind === 'pre' || p.kind === 'missed' ? { priority: N.AndroidNotificationPriority.MAX } : {}),
+        },
         trigger: {
           type: N.SchedulableTriggerInputTypes.DATE,
           date: new Date(p.at),
@@ -123,7 +157,19 @@ export function onNotificationTap(cb: (route: string, id: string) => void): () =
   const N = load();
   if (!N) return () => {};
   const handle = (r: NotificationsModule.NotificationResponse | null) => {
-    const d = r?.notification.request.content.data as { route?: string; id?: string } | undefined;
+    if (!r) return;
+    const d = r.notification.request.content.data as { route?: string; id?: string } | undefined;
+    const nid = r.notification.request.identifier;
+    if (r.actionIdentifier === 'mute') {
+      muteAdhan(nid);
+      if (d?.id) cb('', d.id); // يتعلّم مقروء من غير ما يفتح شاشة
+      return;
+    }
+    if (r.actionIdentifier === 'settings') {
+      muteAdhan(nid);
+      cb('/settings?focus=adhan', d?.id ?? '');
+      return;
+    }
     if (d?.route) cb(d.route, d.id ?? '');
   };
   N.getLastNotificationResponseAsync().then(handle).catch(() => {});

@@ -21,6 +21,7 @@ const SOURCES = [
   'المدن: GeoNames عبر all-the-cities — CC BY 4.0',
   'مواقيت الصلاة والقبلة: مكتبة adhan — MIT',
   'التلاوات: EveryAyah.com',
+  'صوت الأذان: sonically_sound عبر Freesound.org (رقم 639494) — مكتوب CC0، والمصدر الأصلي غير مؤكد (docs/data.md)',
   'الخطوط: Scheherazade New (SIL) و Aref Ruqaa — SIL Open Font License',
 ];
 

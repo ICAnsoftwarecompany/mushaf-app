@@ -2,8 +2,8 @@
  * الإعدادات الكاملة: عام، المظهر، المصحف، التلاوة، الأذان والمواقيت، الإشعارات، الأذكار، الورد، البيانات، عن التطبيق.
  * كل إعداد بيتحفظ على الجهاز فورًا.
  */
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
@@ -25,6 +25,13 @@ import { useMushafTheme } from '@/theme/ThemeContext';
 const SWATCH_TEXT = ayahs[0].split(' ').slice(0, 2).join(' ');
 
 export default function SettingsScreen() {
+  // ?focus=adhan (من زرار «الإعدادات» في إشعار الأذان): ننزل لقسم الإشعارات ونعرض الشرح
+  const { focus } = useLocalSearchParams<{ focus?: string }>();
+  const scrollRef = useRef<ScrollView>(null);
+  const [notifY, setNotifY] = useState<number | null>(null);
+  useEffect(() => {
+    if (focus === 'adhan' && notifY != null) scrollRef.current?.scrollTo({ y: notifY, animated: true });
+  }, [focus, notifY]);
   const { t, lang, num } = useI18n();
   const { settings: s, update, reset, replaceAll } = useSettings();
   const { theme, mode, setMode, tajweedEnabled, setTajweedEnabled } = useMushafTheme();
@@ -82,7 +89,7 @@ export default function SettingsScreen() {
 
   return (
     <Screen title={t('settingsTitle')}>
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.body}>
         {/* ───── عام ───── */}
         <Section title={t('secGeneral')}>
           <SettingRow icon="globe" label={t('language')} vertical>
@@ -285,6 +292,17 @@ export default function SettingsScreen() {
         </Section>
 
         {/* ───── الإشعارات ───── */}
+        <View onLayout={(e) => setNotifY(e.nativeEvent.layout.y)}>
+          {focus === 'adhan' ? (
+            <View style={[styles.help, { backgroundColor: c.highlight, borderColor: c.accent }]}>
+              <Txt size={15} weight="bold">
+                {t('adhanHelpTitle')}
+              </Txt>
+              <Txt size={13} lineHeight={1.7}>
+                {t('adhanHelpBody')}
+              </Txt>
+            </View>
+          ) : null}
         <Section
           title={t('secNotifications')}
           footer={isExpoGoAndroid ? t('notificationsExpoGoNote') : !notificationsSupported ? t('notificationsWebNote') : notifDenied ? t('notificationsDenied') : undefined}>
@@ -393,6 +411,7 @@ export default function SettingsScreen() {
             <Toggle label={t('notifyKahf')} value={s.notifyKahf} onChange={(v) => setNotify({ notifyKahf: v })} />
           </SettingRow>
         </Section>
+        </View>
 
         {/* ───── الأذكار ───── */}
         <Section title={t('secAzkar')}>
@@ -477,6 +496,7 @@ function SmallBtn({ label, onPress }: { label: string; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  help: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 6, marginBottom: 10 },
   body: { padding: 16, paddingBottom: BottomTabInset + 40 },
   themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 12 },
   swatch: { width: '30%', flexGrow: 1, aspectRatio: 0.9, borderRadius: 12, padding: 8, alignItems: 'center', justifyContent: 'space-between' },

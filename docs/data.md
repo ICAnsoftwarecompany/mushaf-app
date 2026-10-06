@@ -103,3 +103,16 @@ npm run build:quran-data
 
 ## الدعاء لغزة (`src/data/gaza-duas.ts`)
 ملف مكتوب بالإيد (مش مولّد). الآيات أرقامها بس والنص من `ayahs.json`. الأدعية النبوية: «اللهم منزل الكتاب…» (متفق عليه)، «اللهم إنا نجعلك في نحورهم…» (أبو داود)، «اللهم أنت عضدي ونصيري…» (أبو داود والترمذي)، دعاء الكرب (متفق عليه)، «يا حي يا قيوم…» (الترمذي). الباقي أدعية عامة من غير نسبة. **محتاج مراجعة متخصص للصيغ والمصادر.**
+
+## صوت الأذان (`assets/sounds/`)
+| الملف | الاستخدام | التفاصيل |
+|---|---|---|
+| `adhan.mp3` | أندرويد — الأذان كامل (٤:٥٢) | mono، 44.1kHz، 96kbps، loudnorm −16 LUFS (~3.5 ميجا) |
+| `adhan_short.wav` | iOS — أول ٢٦ ثانية بـ fade | mono، 22kHz، PCM 16bit (حد آبل ٣٠ ثانية) |
+
+**المصدر:** [Freesound #639494 — sonically_sound](https://freesound.org/people/sonically_sound/sounds/639494/)، مكتوب **CC0**.
+⚠️ **الرخصة مش مضمونة:** صاحب الرفع كاتب إنه «Extracted from a YouTube video and processed»، يعني مش هو صاحب التسجيل الأصلي. صاحب المشروع اختاره للتجربة. **قبل النشر في المتاجر لازم يتبدّل** بتسجيل رخصته سليمة (تسجيل مؤذن بإذنه، أو تسجيل CC0/CC BY متسجل بإيد صاحبه) — نفس اسمي الملفين، والتحويل بنفس أوامر ffmpeg:
+```bash
+ffmpeg -i SRC -ac 1 -ar 44100 -af "silenceremove=start_periods=1:start_threshold=-50dB,loudnorm=I=-16:TP=-1.5:LRA=11" -c:a libmp3lame -b:a 96k assets/sounds/adhan.mp3
+ffmpeg -i SRC -t 26.4 -ac 1 -ar 22050 -af "afade=t=out:st=24.4:d=2,loudnorm=I=-16:TP=-1.5:LRA=11" -c:a pcm_s16le assets/sounds/adhan_short.wav
+```

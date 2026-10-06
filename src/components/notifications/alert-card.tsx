@@ -10,6 +10,7 @@ import { AfterPrayerPrompt } from '@/components/prayer/prayer-tracker';
 import { Btn, Icon, Row, Txt, useHaptic } from '@/components/ui';
 import { MaxContentWidth } from '@/constants/theme';
 import { markRead, useInbox } from '@/features/notifications/inbox';
+import { muteAdhan } from '@/features/notifications/schedule';
 import { useI18n } from '@/i18n';
 import { type Salah, useReading } from '@/store/reading-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
@@ -67,6 +68,9 @@ export function AlertCard() {
                     setPrompt(item.prayer!);
                   }}
                 />
+              ) : null}
+              {item.kind === 'adhan' ? (
+                <Btn title={t('mute')} kind="secondary" icon="speaker" style={{ flex: 1 }} onPress={() => muteAdhan()} />
               ) : null}
               <Btn title={t('seen')} kind="secondary" style={{ flex: 1 }} onPress={() => markRead(item.id)} />
             </Row>
