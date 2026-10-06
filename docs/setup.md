@@ -76,6 +76,7 @@ npx expo start --tunnel
 | صفحة المصحف فاضية على أندرويد | اتصلحت (القارئ بقى بيستخدم FlatList بدل PagerView). اعمل `git pull` و `npm install` و `npx expo start --clear` |
 | ترتيب الكلمات أو المحاذاة مقلوبة | اتأكد إن الشاشة بتستخدم `Row` و `Txt` من `src/components/ui` أو `useI18n().dir` (شوف [i18n.md](i18n.md)) |
 | `expo-notifications: Android Push notifications ... removed from Expo Go` | اتصلح: المكتبة مبقتش بتتحمّل في Expo Go على أندرويد. اعمل `git pull`. الإشعارات نفسها محتاجة development build |
+| زرار ترس رمادي عايم فوق الشاشة | ده زرار أدوات Expo Go نفسه، مش من التطبيق. مش هيظهر في النسخة الحقيقية |
 | الإشعارات أو التلاوة في الخلفية مش شغالة في Expo Go | جرّب على development build (`eas build --profile development` أو `npx expo run:android`) أو APK من بروفايل `preview` |
 | `npx expo install` بيفشل بسبب الشبكة | `npm install <pkg>@<النسخة>` بالنسخة اللي في `node_modules/expo/bundledNativeModules.json` |
 | ميزة محتاجة مكتبة native مش في Expo Go | محتاج development build: `npx expo install expo-dev-client` وبعدين `npx expo run:android` |

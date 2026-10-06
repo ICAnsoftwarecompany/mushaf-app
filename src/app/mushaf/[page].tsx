@@ -5,6 +5,8 @@
  * - ضغطة على آية: علامة، نسخ، مشاركة، تفسير، استماع
  * - التلاوة بتظلّل الآية وتقلّب الصفحة لوحدها
  * - آخر صفحة بتتحفظ تلقائيًا، والشاشة بتفضل منورة (لو مفعّل)
+ * - الشريط العلوي (السورة، الجزء، الحزب، الصفحة) ظاهر على طول
+ * - التكبير بإصبعين: تكبير الصفحة في وضع الصفحات، وتغيير حجم الخط في وضع النص
  */
 import * as Clipboard from 'expo-clipboard';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -16,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AudioBar } from '@/components/mushaf/audio-bar';
 import { MushafPage } from '@/components/mushaf/mushaf-page';
 import { PagePager } from '@/components/mushaf/page-pager';
+import { PinchZoom } from '@/components/mushaf/pinch-zoom';
 import { TafsirSheet } from '@/components/mushaf/tafsir-sheet';
 import { TextReader } from '@/components/mushaf/text-reader';
 import { Icon, type IconName, Row, Txt, useHaptic } from '@/components/ui';
@@ -26,6 +29,7 @@ import {
   juzLabel,
   juzOfPage,
   pageOfAyah,
+  quarterOfPage,
   surahLabel,
   surahOfAyah,
   surahsOfPage,
@@ -35,7 +39,7 @@ import { getTranslation } from '@/data/quran/extra';
 import { useAudio } from '@/features/audio/audio-store';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
-import { useSettings } from '@/store/settings-store';
+import { scaleFactor, useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
 /** نسبة عرض لارتفاع صفحة المصحف تقريبًا */
@@ -55,7 +59,7 @@ export default function MushafScreen() {
 
   const { theme, tajweedEnabled } = useMushafTheme();
   const c = theme.colors;
-  const { t, lang, dir } = useI18n();
+  const { t, lang, dir, num } = useI18n();
   const { settings, update } = useSettings();
   const { setLastPage, isPageBookmarked, togglePageBookmark, addAyahBookmark } = useReading();
   const audio = useAudio();
@@ -63,7 +67,8 @@ export default function MushafScreen() {
 
   const [page, setPage] = useState(initialPage);
   const [selectedAyah, setSelectedAyah] = useState<number | null>(initialAyah);
-  const [chrome, setChrome] = useState(true);
+  const [zoomed, setZoomed] = useState(false);
+  const [zoomReset, setZoomReset] = useState(0);
   const [area, setArea] = useState<{ width: number; height: number } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [tafsirAyah, setTafsirAyah] = useState<number | null>(null);
@@ -84,12 +89,6 @@ export default function MushafScreen() {
       deactivateKeepAwake('reader').catch(() => {});
     };
   }, [settings.keepAwake]);
-
-  // شريط الأدوات بيظهر أول ما الشاشة تفتح وبعدين يختفي
-  useEffect(() => {
-    const id = setTimeout(() => setChrome(false), 2500);
-    return () => clearTimeout(id);
-  }, []);
 
   useEffect(() => {
     if (!notice) return;
@@ -123,10 +122,21 @@ export default function MushafScreen() {
   };
 
   const onAyahPress = useCallback((id: number) => setSelectedAyah((cur) => (cur === id ? null : id)), []);
-  const toggleChrome = useCallback(() => {
-    setSelectedAyah(null);
-    setChrome((v) => !v);
-  }, []);
+  const clearSelection = useCallback(() => setSelectedAyah(null), []);
+
+  // التكبير بإصبعين في وضع النص = تغيير حجم خط المصحف (من ١ لـ ١٠)
+  const onFontPinchEnd = useCallback(
+    (pinchScale: number) => {
+      const target = scaleFactor(settings.mushafScale) * pinchScale;
+      const level = Math.min(10, Math.max(1, Math.round(5 + (target - 1) / 0.07)));
+      if (level !== settings.mushafScale) {
+        update({ mushafScale: level });
+        haptic();
+      }
+    },
+    [settings.mushafScale, update, haptic]
+  );
+  const fontRange: [number, number] = [scaleFactor(1) / scaleFactor(settings.mushafScale), scaleFactor(10) / scaleFactor(settings.mushafScale)];
 
   // ───── الصفحات: عنصر = صفحة أو صفحتين ─────
   const count = spread ? Math.ceil(TOTAL_PAGES / 2) : TOTAL_PAGES;
@@ -145,7 +155,7 @@ export default function MushafScreen() {
       bold={settings.mushafBold}
       showMargins={settings.showMargins}
       onAyahPress={onAyahPress}
-      onBackgroundPress={toggleChrome}
+      onBackgroundPress={clearSelection}
     />
   );
 
@@ -222,29 +232,6 @@ export default function MushafScreen() {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: c.background }]} edges={['top', 'bottom']}>
-      <View style={styles.area} onLayout={onLayout}>
-        {area &&
-          (textMode ? (
-            <View style={{ flex: 1, alignSelf: 'stretch' }}>
-            <TextReader
-              startAyah={selectedAyah ?? firstAyahOfPage(page)}
-              selectedAyah={selectedAyah}
-              playingAyah={audio.ayahId}
-              translation={showTranslation ? translation : null}
-              tajweed={tajweedEnabled}
-              onAyahPress={onAyahPress}
-              onVisibleAyah={(id) => {
-                const p = pageOfAyah(id);
-                if (p !== page) setPage(p);
-              }}
-            />
-            </View>
-          ) : (
-            <PagePager key={spread ? 'spread' : 'single'} count={count} index={index} onIndexChange={onIndexChange} renderItem={renderItem} />
-          ))}
-      </View>
-
-      {(chrome || textMode) && (
         <Row style={[styles.topBar, { backgroundColor: c.surface, borderColor: c.border }]}>
           <Pressable
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
@@ -259,7 +246,7 @@ export default function MushafScreen() {
               {surahLabel(surah, lang)}
             </Txt>
             <Txt size={12} color="textSecondary" align="center">
-              {`${juzLabel(juzOfPage(page), lang)} · ${t('pageN', { n: page })}`}
+              {`${juzLabel(juzOfPage(page), lang)} · ${t('hizbN', { n: num(quarterOfPage(page).hizb) })} · ${t('pageN', { n: num(page) })}`}
             </Txt>
           </View>
           <Row style={{ gap: 14 }}>
@@ -283,7 +270,52 @@ export default function MushafScreen() {
             </Pressable>
           </Row>
         </Row>
-      )}
+      <View style={styles.area} onLayout={onLayout}>
+        {area &&
+          (textMode ? (
+            <PinchZoom mode="font" fontPreviewRange={fontRange} onFontPinchEnd={onFontPinchEnd}>
+            <View style={{ flex: 1, alignSelf: 'stretch' }}>
+            <TextReader
+              startAyah={selectedAyah ?? firstAyahOfPage(page)}
+              selectedAyah={selectedAyah}
+              playingAyah={audio.ayahId}
+              translation={showTranslation ? translation : null}
+              tajweed={tajweedEnabled}
+              onAyahPress={onAyahPress}
+              onVisibleAyah={(id) => {
+                const p = pageOfAyah(id);
+                if (p !== page) setPage(p);
+              }}
+            />
+            </View>
+            </PinchZoom>
+          ) : (
+            <PinchZoom mode="visual" resetKey={`${page}-${zoomReset}`} onZoomedChange={setZoomed}>
+              <PagePager
+                key={spread ? 'spread' : 'single'}
+                count={count}
+                index={index}
+                onIndexChange={onIndexChange}
+                renderItem={renderItem}
+                scrollEnabled={!zoomed}
+              />
+            </PinchZoom>
+          ))}
+        {zoomed && !textMode && (
+          <Pressable
+            onPress={() => setZoomReset((n) => n + 1)}
+            accessibilityRole="button"
+            accessibilityLabel={t('resetZoom')}
+            style={[styles.zoomChip, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <Row style={{ gap: 6 }}>
+              <Icon name="reset" size={16} color={c.accent} />
+              <Txt size={13} color="accent">
+                {t('resetZoom')}
+              </Txt>
+            </Row>
+          </Pressable>
+        )}
+      </View>
 
       {selectedAyah !== null && (
         <View style={[styles.ayahBar, { backgroundColor: c.surface, borderColor: c.border }]}>
@@ -327,16 +359,14 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   area: { flex: 1, alignItems: 'center' },
   topBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    zIndex: 2,
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   titleBox: { flex: 1, alignItems: 'center' },
+  zoomChip: { position: 'absolute', top: 10, alignSelf: 'center', borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   ayahBar: { paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
   action: { alignItems: 'center', gap: 2, minWidth: 54 },
   notice: { position: 'absolute', bottom: 120, alignSelf: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },

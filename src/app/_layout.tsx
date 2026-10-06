@@ -12,7 +12,9 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { AppState, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { MiniPlayer } from '@/components/audio/mini-player';
 import { IntroScreen } from '@/components/brand/intro-screen';
 import { AudioProvider } from '@/features/audio/audio-store';
 import { rescheduleAll } from '@/features/notifications/schedule';
@@ -64,6 +66,8 @@ function RootStack() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="mushaf/[page]" options={{ animation: 'fade' }} />
       </Stack>
+      {/* المشغّل الصغير فوق كل الشاشات لما في تلاوة شغالة */}
+      <MiniPlayer />
       {/* الشاشة الافتتاحية: اللوجو + الآية اللي منها الاسم */}
       {settings.showIntro && !introDone && <IntroScreen onDone={() => setIntroDone(true)} />}
     </View>
@@ -72,6 +76,7 @@ function RootStack() {
 
 export default function RootLayout() {
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SettingsProvider>
       <ThemeProvider>
         <ReadingProvider>
@@ -81,5 +86,6 @@ export default function RootLayout() {
         </ReadingProvider>
       </ThemeProvider>
     </SettingsProvider>
+    </GestureHandlerRootView>
   );
 }

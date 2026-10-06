@@ -43,12 +43,14 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── app-tabs.tsx         التابات الأصلية (موبايل)
     │   ├── app-tabs.web.tsx     شريط التابات (ويب)
     │   ├── brand/intro-screen.tsx   الشاشة الافتتاحية
+    │   ├── audio/mini-player.tsx    المشغّل الصغير فوق كل الشاشات
     │   ├── listen/              الاستماع: now-playing، list-row، download-button، add-to-playlist، name-prompt
     │   └── mushaf/
     │       ├── mushaf-page.tsx      صفحة بسطورها الـ 15 (+ التجويد والهامش والأحزاب)
     │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList، صفحة أو صفحتين)
     │       ├── page-pager.web.tsx   تقليب الصفحات (ويب — أزرار وأسهم)
     │       ├── text-reader.tsx      وضع النص المتصل (+ الترجمة)
+    │       ├── pinch-zoom.tsx       التكبير بإصبعين (gesture-handler + reanimated)
     │       ├── tafsir-sheet.tsx     التفسير والترجمة للآية
     │       └── audio-bar.tsx        شريط التلاوة
     ├── constants/
@@ -83,7 +85,8 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ## ترتيب الـ Providers
 
 ```
-SettingsProvider         كل الإعدادات (اللغة، الخطوط، المواقيت، الإشعارات…)
+GestureHandlerRootView   مطلوب للتكبير بإصبعين
+└── SettingsProvider     كل الإعدادات (اللغة، الخطوط، المواقيت، الإشعارات…)
 └── ThemeProvider        الثيم (وبيقرا الإعدادات علشان الوضع الليلي بالمواقيت)
     └── ReadingProvider  آخر صفحة + العلامات + الختمة
         └── AudioProvider    مشغّل التلاوة
@@ -110,6 +113,7 @@ SettingsProvider         كل الإعدادات (اللغة، الخطوط، ا
 | المكتبة | الاستخدام |
 |---|---|
 | `expo-router` | التنقل والتابات |
+| `react-native-gesture-handler`، `react-native-reanimated` | التكبير بإصبعين في القارئ |
 | `@shopify/flash-list` | القوايم الطويلة ووضع النص المتصل |
 | `@react-native-async-storage/async-storage` | التخزين |
 | `@expo-google-fonts/scheherazade-new` | خط القرآن (عادي وعريض) |

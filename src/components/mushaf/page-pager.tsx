@@ -17,12 +17,14 @@ export interface PagePagerProps {
   index: number;
   onIndexChange: (index: number) => void;
   renderItem: (index: number) => React.ReactNode;
+  /** false وقت تكبير الصفحة علشان السحب يحرّك الصفحة المكبّرة مش يقلّب */
+  scrollEnabled?: boolean;
 }
 
 /** لو تخطيط الجهاز LTR بنقلب القائمة علشان العنصر الجاي يبقى على الشمال */
 const INVERTED = !IS_RTL_LAYOUT;
 
-export function PagePager({ count, index, onIndexChange, renderItem }: PagePagerProps) {
+export function PagePager({ count, index, onIndexChange, renderItem, scrollEnabled = true }: PagePagerProps) {
   const [width, setWidth] = useState(0);
   const list = useRef<FlatList<number>>(null);
   const current = useRef(index);
@@ -73,6 +75,7 @@ export function PagePager({ count, index, onIndexChange, renderItem }: PagePager
           horizontal
           inverted={INVERTED}
           pagingEnabled
+          scrollEnabled={scrollEnabled}
           showsHorizontalScrollIndicator={false}
           getItemLayout={getItemLayout}
           initialScrollIndex={Math.min(count, Math.max(1, index)) - 1}

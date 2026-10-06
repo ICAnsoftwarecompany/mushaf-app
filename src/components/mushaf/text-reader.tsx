@@ -73,7 +73,7 @@ export function TextReader({ startAyah, selectedAyah, playingAyah, translation, 
       keyExtractor={(it) => (it.k === 'a' ? `a${it.id}` : `${it.k}${it.surah}`)}
       getItemType={(it) => it.k}
       onViewableItemsChanged={onViewable}
-      contentContainerStyle={{ paddingBottom: 160, paddingTop: 70 }}
+      contentContainerStyle={{ paddingBottom: 40, paddingTop: 12 }}
       extraData={[selectedAyah, playingAyah, translation, tajweed, settings.mushafScale, settings.mushafBold, theme.id]}
       renderItem={({ item }) => {
         if (item.k === 'h') {

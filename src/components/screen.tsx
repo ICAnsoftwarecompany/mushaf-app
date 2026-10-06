@@ -6,6 +6,7 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MINI_PLAYER_SPACE, useMiniPlayerVisible } from '@/components/audio/mini-player';
 import { Icon, Row, Txt } from '@/components/ui';
 import { MaxContentWidth } from '@/constants/theme';
 import { useI18n } from '@/i18n';
@@ -25,6 +26,7 @@ export function Screen({ title, subtitle, back, actions, children }: Props) {
   const { theme } = useMushafTheme();
   const { t, dir } = useI18n();
   const c = theme.colors;
+  const mini = useMiniPlayerVisible();
 
   return (
     <SafeAreaView
@@ -54,7 +56,7 @@ export function Screen({ title, subtitle, back, actions, children }: Props) {
           </View>
           {actions ? <Row style={{ gap: 6 }}>{actions}</Row> : null}
         </Row>
-        <View style={styles.content}>{children}</View>
+        <View style={[styles.content, mini && { paddingBottom: MINI_PLAYER_SPACE }]}>{children}</View>
       </View>
     </SafeAreaView>
   );
