@@ -26,6 +26,7 @@ import {
   ayahNumber,
   ayahs,
   firstAyahOfPage,
+  getSurah,
   juzLabel,
   juzOfPage,
   pageOfAyah,
@@ -50,6 +51,9 @@ export async function generateStaticParams(): Promise<Record<string, string>[]> 
   return Array.from({ length: TOTAL_PAGES }, (_, i) => ({ page: String(i + 1) }));
 }
 
+const KAHF_FIRST = getSurah(18).page;
+const KAHF_LAST = getSurah(19).page - 1;
+
 const clampPage = (p: number) => Math.min(TOTAL_PAGES, Math.max(1, Math.round(p)));
 
 export default function MushafScreen() {
@@ -61,7 +65,7 @@ export default function MushafScreen() {
   const c = theme.colors;
   const { t, lang, dir, num } = useI18n();
   const { settings, update } = useSettings();
-  const { setLastPage, isPageBookmarked, togglePageBookmark, addAyahBookmark } = useReading();
+  const { setLastPage, isPageBookmarked, togglePageBookmark, addAyahBookmark, markActivity } = useReading();
   const audio = useAudio();
   const haptic = useHaptic();
 
@@ -77,7 +81,9 @@ export default function MushafScreen() {
 
   useEffect(() => {
     setLastPage(page);
-  }, [page, setLastPage]);
+    // القراية في سورة الكهف → «أنا مسلم» (يوم الجمعة)
+    if (page >= KAHF_FIRST && page <= KAHF_LAST) markActivity('kahf');
+  }, [page, setLastPage, markActivity]);
 
   // الشاشة منورة أثناء القراءة
   useEffect(() => {

@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { MuslimCard } from '@/components/muslim/muslim-card';
 import { HeaderButton, Screen } from '@/components/screen';
 import { Btn, Card, Row, Segmented, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
@@ -32,6 +33,7 @@ export default function IndexScreen() {
 
   const header = (
     <View style={styles.headerBlock}>
+      <MuslimCard />
       <ContinueCard />
       <WirdCard />
       <Segmented

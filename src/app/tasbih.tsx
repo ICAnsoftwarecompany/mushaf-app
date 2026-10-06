@@ -7,6 +7,7 @@ import { Platform, Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { Btn, Segmented, Txt, useHaptic } from '@/components/ui';
 import { useI18n } from '@/i18n';
+import { useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
@@ -18,6 +19,7 @@ export default function TasbihScreen() {
   const c = theme.colors;
   const { settings } = useSettings();
   const haptic = useHaptic();
+  const { markActivity } = useReading();
   const [count, setCount] = useState(0);
   const [target, setTarget] = useState(33);
   const [phrase, setPhrase] = useState(0);
@@ -25,6 +27,8 @@ export default function TasbihScreen() {
   const tap = () => {
     const n = count + 1;
     setCount(n);
+    // أول ما يوصل للهدف (أو ٣٣ لو من غير حد) → «أنا مسلم»
+    if (n === (target || 33)) markActivity('tasbih');
     if (target > 0 && n % target === 0) {
       haptic('success');
       if (settings.vibrateOnFinish && Platform.OS !== 'web') Vibration.vibrate(120);

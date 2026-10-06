@@ -9,6 +9,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { Platform } from 'react-native';
 
 import { ayahNumber, getSurah, surahLabel, surahOfAyah } from '@/data/quran';
+import { useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
 
 import { localAyahUri } from './offline';
@@ -63,6 +64,7 @@ const needsBasmala = (ayahId: number) => {
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const { settings } = useSettings();
+  const { markActivity } = useReading();
   const [state, setState] = useState<AudioState>(EMPTY);
   const player = useRef<AudioPlayer | null>(null);
   const current = useRef<number | null>(null);
@@ -171,13 +173,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
     const s = surahOfAyah(id);
     if (id < s.firstAyah + s.ayahs - 1) return load(id + 1);
+    // سورة خلصت للآخر → «سماع القرآن» في «أنا مسلم»
+    markActivity('listen');
     const q = queue.current;
     if (q) {
       if (q.index + 1 < q.surahs.length) return startQueueAt(q.index + 1);
       if (loop.current && q.surahs.length) return startQueueAt(0);
     }
     finishAll();
-  }, [load, startQueueAt, finishAll]);
+  }, [load, startQueueAt, finishAll, markActivity]);
   useEffect(() => {
     finishedRef.current = onFinished;
   }, [onFinished]);

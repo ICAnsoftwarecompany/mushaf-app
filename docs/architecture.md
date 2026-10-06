@@ -45,6 +45,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── app-tabs.web.tsx     شريط التابات (ويب)
     │   ├── brand/intro-screen.tsx   الشاشة الافتتاحية
     │   ├── audio/mini-player.tsx    المشغّل الصغير فوق كل الشاشات
+    │   ├── muslim/muslim-card.tsx   كارت «أنا مسلم» في الصفحة الرئيسية
     │   ├── prayer/prayer-tracker.tsx  قايمة الفروض: ✓، سجل ٧ أيام، سؤال أذكار ما بعد الصلاة
     │   ├── notifications/       alert-card (الكارت اللي فوق)، prayer-pill (العد التنازلي على الجنب)
     │   ├── listen/              الاستماع: now-playing، list-row، download-button، add-to-playlist، name-prompt
@@ -72,6 +73,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── audio/               audio-store (المشغّل + طابور السور + البسملة)، reciters، offline (ملفات الجهاز)،
     │   │                        downloads (طابور التحميل المشترك + useDownloads)
     │   ├── notifications/       plan.ts (خطة كل التنبيهات) ← inbox.ts (مركز التنبيهات) + schedule.ts (إشعارات الموبايل، الويب فاضي)
+    │   ├── muslim/              day-plan (خطة اليوم)، use-day-plan
     │   └── backup*.ts           النسخ الاحتياطي (موبايل / ويب)
     ├── i18n/
     │   ├── strings.ts           كل نصوص الواجهة بالعربي والإنجليزي
@@ -108,6 +110,7 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `mushaf.bookmarks` | `{ id, page, ayahId?, createdAt }[]` | `reading-store.tsx` |
 | `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
 | `yatlu.prayerLog` | `{ "YYYY-MM-DD": { fajr?: ms, … } }` آخر 30 يوم (داخل في النسخة الاحتياطية) | `reading-store.tsx` |
+| `yatlu.activityLog` | أنشطة «أنا مسلم» اللي اتعملت (آخر 14 يوم) | `reading-store.tsx` |
 | `yatlu.inbox` | `{ items, read, since }` مركز التنبيهات (آخر ١٤ يوم) | `features/notifications/inbox.ts` |
 | `yatlu.suggestedSeeded` | القوايم المقترحة اتضافت | `reading-store.tsx` |
 | `yatlu.playlists` | `{ id, name, surahs[], createdAt }[]` (داخلة في النسخة الاحتياطية) | `reading-store.tsx` |
@@ -134,7 +137,7 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `expo-keep-awake` | الشاشة منورة أثناء القراءة |
 | `expo-clipboard` | نسخ الآية |
 | `expo-sharing`، `expo-document-picker` | النسخ الاحتياطي |
-| `expo-localization` | لغة الجهاز (الافتراضي) |
+| `expo-localization` | (مش مستخدمة حاليًا — اللغة الافتراضية عربي) |
 | `expo-application`، `expo-constants` | رقم الإصدار |
 | `expo-asset` | ملفات .ytd + مطلوبة لـ expo-audio |
 | `workbox-cli` (dev) | الـ service worker للويب |

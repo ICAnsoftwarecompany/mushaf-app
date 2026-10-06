@@ -37,11 +37,13 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
-      backgroundColor={colors.background}
+      backgroundColor={colors.backgroundElement}
       indicatorColor={colors.backgroundSelected}
+      // ألوان صريحة للأيقونات والأسماء علشان تبان في الثيمات الغامقة
+      iconColor={{ default: colors.textSecondary, selected: colors.accent }}
       // اسم كل صفحة تحت أيقونتها على طول (مش للتاب المختار بس)
       labelVisibilityMode="labeled"
-      labelStyle={{ selected: { color: colors.accent } }}>
+      labelStyle={{ default: { color: colors.textSecondary }, selected: { color: colors.accent } }}>
       {ordered}
     </NativeTabs>
   );

@@ -3,7 +3,6 @@
  * الثيم وألوان التجويد لسه في src/theme/ThemeContext.tsx.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getLocales } from 'expo-localization';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 export type Language = 'ar' | 'en';
@@ -98,29 +97,23 @@ export interface Settings {
   wirdPagesPerDay: number;
 }
 
-const deviceLanguage = (): Language => {
-  try {
-    return getLocales()[0]?.languageCode === 'en' ? 'en' : 'ar';
-  } catch {
-    return 'ar';
-  }
-};
 
 export const DEFAULT_SETTINGS: Settings = {
-  language: deviceLanguage(),
+  // أول تشغيل: عربي دايمًا (المستخدم يغيّرها من الإعدادات)
+  language: 'ar',
   uiScale: 5,
   uiBold: false,
   showIntro: true,
   haptics: true,
   keepAwake: true,
-  nightByPrayer: false,
+  nightByPrayer: true,
 
   mushafMode: 'pages',
   mushafScale: 5,
   pageZoom: 1,
   mushafBold: false,
   showMargins: true,
-  showTranslation: false,
+  showTranslation: true,
   reciter: 'Alafasy_128kbps',
   repeatAyah: 1,
 
@@ -135,11 +128,11 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyAdhan: true,
   notifyPrayers: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
   adhanSound: true,
-  preReminder: 0,
+  preReminder: 10,
   notifyAzkar: true,
   morningAzkarTime: '06:30',
   eveningAzkarTime: '17:00',
-  notifyWird: false,
+  notifyWird: true,
   wirdTime: '20:00',
   notifyKahf: true,
   notifyMissedPrayer: true,

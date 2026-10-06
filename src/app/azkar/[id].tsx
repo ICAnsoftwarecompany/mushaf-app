@@ -10,6 +10,7 @@ import { Btn, Card, Row, Txt, useHaptic } from '@/components/ui';
 import { getCategory, type Zekr } from '@/data/azkar';
 import { ayahs, getSurah, surahOfAyah } from '@/data/quran';
 import { useI18n } from '@/i18n';
+import { useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
@@ -26,6 +27,7 @@ export default function AzkarCategoryScreen() {
   const { t } = useI18n();
   const { settings } = useSettings();
   const haptic = useHaptic();
+  const { markActivity } = useReading();
   const [left, setLeft] = useState<number[]>(() => cat?.items.map((z) => z.count) ?? []);
 
   const remaining = useMemo(() => left.filter((n) => n > 0).length, [left]);
@@ -37,6 +39,8 @@ export default function AzkarCategoryScreen() {
     setLeft((prev) => prev.map((v, k) => (k === i ? n : v)));
     if (n === 0) {
       haptic('success');
+      // آخر ذكر في القسم خلص → يتعلّم في «أنا مسلم»
+      if (remaining === 1) markActivity(`azkar:${cat.id}`);
       if (settings.vibrateOnFinish && Platform.OS !== 'web') Vibration.vibrate(80);
     } else haptic();
   };
