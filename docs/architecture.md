@@ -5,6 +5,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── AGENTS.md / CLAUDE.md        تعليمات لأدوات الذكاء الاصطناعي (بتشاور على docs/)
 ├── app.json                     إعدادات Expo (الاسم، المعرّف، الأيقونات، الأذونات، الإضافات)
 ├── eas.json                     بروفايلات بناء أندرويد و iOS
+├── app.config.js                بيقرا app.json ويضيف صوت الأذان لو assets/sounds/adhan.wav موجود
 ├── metro.config.js              ملفات .ytd (بيانات كبيرة) بتتعامل كـ assets
 ├── eslint.config.js             إعدادات الـ lint
 ├── workbox-config.cjs           الـ service worker لنسخة الويب
@@ -45,6 +46,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── brand/intro-screen.tsx   الشاشة الافتتاحية
     │   ├── audio/mini-player.tsx    المشغّل الصغير فوق كل الشاشات
     │   ├── prayer/prayer-tracker.tsx  قايمة الفروض: ✓، سجل ٧ أيام، سؤال أذكار ما بعد الصلاة
+    │   ├── notifications/       alert-card (الكارت اللي فوق)، prayer-pill (العد التنازلي على الجنب)
     │   ├── listen/              الاستماع: now-playing، list-row، download-button، add-to-playlist، name-prompt
     │   └── mushaf/
     │       ├── mushaf-page.tsx      صفحة بسطورها الـ 15 (+ التجويد والهامش والأحزاب)
@@ -69,7 +71,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── prayer/              مواقيت الصلاة، القبلة، المدن، التاريخ الهجري، تحديد الموقع
     │   ├── audio/               audio-store (المشغّل + طابور السور + البسملة)، reciters، offline (ملفات الجهاز)،
     │   │                        downloads (طابور التحميل المشترك + useDownloads)
-    │   ├── notifications/       جدولة الإشعارات المحلية (موبايل) — الويب فاضي
+    │   ├── notifications/       plan.ts (خطة كل التنبيهات) ← inbox.ts (مركز التنبيهات) + schedule.ts (إشعارات الموبايل، الويب فاضي)
     │   └── backup*.ts           النسخ الاحتياطي (موبايل / ويب)
     ├── i18n/
     │   ├── strings.ts           كل نصوص الواجهة بالعربي والإنجليزي
@@ -106,6 +108,8 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `mushaf.bookmarks` | `{ id, page, ayahId?, createdAt }[]` | `reading-store.tsx` |
 | `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
 | `yatlu.prayerLog` | `{ "YYYY-MM-DD": { fajr?: ms, … } }` آخر 30 يوم (داخل في النسخة الاحتياطية) | `reading-store.tsx` |
+| `yatlu.inbox` | `{ items, read, since }` مركز التنبيهات (آخر ١٤ يوم) | `features/notifications/inbox.ts` |
+| `yatlu.suggestedSeeded` | القوايم المقترحة اتضافت | `reading-store.tsx` |
 | `yatlu.playlists` | `{ id, name, surahs[], createdAt }[]` (داخلة في النسخة الاحتياطية) | `reading-store.tsx` |
 
 ملفات التلاوة المتحمّلة: `<Documents>/audio/<القارئ>/<SSSAAA>.mp3` (موبايل بس). تحميل السورة بيشمل `001001.mp3` (البسملة). التحميل بيتكتب في `.part` الأول وبعدين يتنقل، علشان ملف ناقص ما يتحسبش متحمّل.

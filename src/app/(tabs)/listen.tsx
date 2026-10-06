@@ -13,12 +13,13 @@ import { IconBtn, ListRow } from '@/components/listen/list-row';
 import { NamePrompt } from '@/components/listen/name-prompt';
 import { NowPlaying } from '@/components/listen/now-playing';
 import { HeaderButton, Screen } from '@/components/screen';
-import { Btn, Card, Icon, Row, Segmented, Txt } from '@/components/ui';
+import { Btn, Card, Icon, Row, Segmented, Toggle, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
 import { getSurah, juzLabel, juzList, surahLabel, surahOfAyah, surahs } from '@/data/quran';
 import { useAudio } from '@/features/audio/audio-store';
 import { deleteSurahFiles, juzFiles, jobKey, surahFiles, useDownloads } from '@/features/audio/downloads';
 import { canDownload, totalDownloadedBytes } from '@/features/audio/offline';
+import { playlistName } from '@/features/audio/playlists';
 import { reciterById } from '@/features/audio/reciters';
 import { useI18n } from '@/i18n';
 import { type Playlist, useReading } from '@/store/reading-store';
@@ -38,7 +39,7 @@ const ALL_SURAHS = surahs.map((s) => s.id);
 export default function ListenScreen() {
   const { t, lang, num } = useI18n();
   const { theme } = useMushafTheme();
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const reading = useReading();
   const audio = useAudio();
   const dl = useDownloads(settings.reciter);
@@ -61,8 +62,9 @@ export default function ListenScreen() {
     if (tab === 'surahs') return ALL_SURAHS.map((id) => ({ k: 'surah' as const, id }));
     if (tab === 'juz') return juzList.map((j) => ({ k: 'juz' as const, id: j.id }));
     if (tab === 'playlists') {
-      const list: Item[] = [{ k: 'newpl' }, ...reading.playlists.map((p) => ({ k: 'pl' as const, p }))];
-      if (!reading.playlists.length) list.push({ k: 'empty', title: t('noPlaylists'), hint: t('noPlaylistsHint') });
+      const visible = reading.playlists.filter((p) => settings.showSuggestedPlaylists || !p.suggested);
+      const list: Item[] = [{ k: 'newpl' }, ...visible.map((p) => ({ k: 'pl' as const, p }))];
+      if (!visible.length) list.push({ k: 'empty', title: t('noPlaylists'), hint: t('noPlaylistsHint') });
       return list;
     }
     if (!downloaded.length) return [{ k: 'empty' as const, title: t('noDownloads'), hint: t('noDownloadsHint') }];
@@ -166,21 +168,54 @@ export default function ListenScreen() {
                 </ListRow>
               );
             }
-            case 'pl':
+            case 'pl': {
+              const name = playlistName(item.p, t);
+              const r = item.p.reciter ? reciterById(item.p.reciter) : null;
               return (
                 <ListRow
                   icon="playlist"
-                  title={item.p.name}
-                  subtitle={t('surahsCountN', { n: num(item.p.surahs.length) })}
-                  active={audio.queueTitle === item.p.name && audio.ayahId != null}
+                  title={name}
+                  subtitle={[
+                    item.p.suggested ? t('suggested') : null,
+                    t('surahsCountN', { n: num(item.p.surahs.length) }),
+                    r ? (lang === 'ar' ? r.ar : r.en) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  active={audio.queueTitle === name && audio.ayahId != null}
                   onPress={() => router.push({ pathname: '/playlist', params: { id: item.p.id } })}>
                   {item.p.surahs.length ? (
-                    <IconBtn icon="play" label={t('playAll')} onPress={() => audio.playSurahs(item.p.surahs, 0, { title: item.p.name })} accent />
+                    <IconBtn
+                      icon="play"
+                      label={t('playAll')}
+                      onPress={() => audio.playSurahs(item.p.surahs, 0, { title: name, reciter: item.p.reciter })}
+                      accent
+                    />
                   ) : null}
                 </ListRow>
               );
+            }
             case 'newpl':
-              return <Btn title={t('newPlaylist')} icon="plus" kind="secondary" onPress={() => setNaming(true)} style={{ marginVertical: 8 }} />;
+              return (
+                <View style={{ gap: 8, marginVertical: 8 }}>
+                  <Btn title={t('newPlaylist')} icon="plus" kind="secondary" onPress={() => setNaming(true)} />
+                  <Row style={{ gap: 10, paddingHorizontal: 4 }}>
+                    <Txt size={13} color="textSecondary" style={{ flex: 1 }}>
+                      {t('showSuggestedPlaylists')}
+                    </Txt>
+                    <Toggle
+                      label={t('showSuggestedPlaylists')}
+                      value={settings.showSuggestedPlaylists}
+                      onChange={(v) => update({ showSuggestedPlaylists: v })}
+                    />
+                  </Row>
+                  {settings.showSuggestedPlaylists ? (
+                    <Txt size={12} color="textSecondary" style={{ paddingHorizontal: 4 }}>
+                      {t('suggestedNote')}
+                    </Txt>
+                  ) : null}
+                </View>
+              );
             case 'empty':
               return (
                 <View style={styles.empty}>

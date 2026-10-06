@@ -25,12 +25,14 @@ interface AudioState {
   /** اسم المصدر (قايمة استماع أو جزء) للعرض */
   queueTitle: string | null;
   loop: boolean;
+  /** القارئ اللي بيقرا دلوقتي (قارئ القايمة أو الافتراضي) */
+  reciter: string | null;
 }
 
 interface AudioContextValue extends AudioState {
   playFrom: (ayahId: number) => void;
   /** تشغيل طابور سور من السورة رقم index (واختياري: من آية معينة جواها) */
-  playSurahs: (surahs: number[], index?: number, opts?: { startAyahId?: number; title?: string }) => void;
+  playSurahs: (surahs: number[], index?: number, opts?: { startAyahId?: number; title?: string; reciter?: string }) => void;
   toggle: () => void;
   stop: () => void;
   next: () => void;
@@ -49,6 +51,7 @@ const EMPTY: AudioState = {
   queueIndex: 0,
   queueTitle: null,
   loop: false,
+  reciter: null,
 };
 
 const AudioContext = createContext<AudioContextValue | null>(null);
@@ -68,6 +71,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const repeatsLeft = useRef(1);
   const queue = useRef<{ surahs: number[]; index: number } | null>(null);
   const loop = useRef(false);
+  /** قارئ القايمة (لو ليها قارئ خاص) */
+  const reciterOverride = useRef<string | null>(null);
   const settingsRef = useRef(settings);
   useEffect(() => {
     settingsRef.current = settings;
@@ -91,9 +96,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const playFile = useCallback(
     (surah: number, ayah: number, shownAyahId: number) => {
       const p = getPlayer();
-      const reciter = settingsRef.current.reciter;
+      const reciter = reciterOverride.current ?? settingsRef.current.reciter;
       const uri = localAyahUri(reciter, surah, ayah) ?? ayahUrl(reciter, surah, ayah);
-      setState((st) => ({ ...st, ayahId: shownAyahId, playing: true, loading: true, error: false }));
+      setState((st) => ({ ...st, ayahId: shownAyahId, playing: true, loading: true, error: false, reciter }));
       try {
         p.replace({ uri });
         p.play();
@@ -180,6 +185,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const playFrom = useCallback(
     (ayahId: number) => {
       queue.current = null;
+      reciterOverride.current = null;
       setState((st) => ({ ...st, queue: null, queueIndex: 0, queueTitle: null }));
       load(ayahId);
     },
@@ -187,8 +193,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   );
 
   const playSurahs = useCallback(
-    (surahs: number[], index = 0, opts?: { startAyahId?: number; title?: string }) => {
+    (surahs: number[], index = 0, opts?: { startAyahId?: number; title?: string; reciter?: string }) => {
       if (!surahs.length) return;
+      reciterOverride.current = opts?.reciter ?? null;
       queue.current = { surahs, index };
       setState((st) => ({ ...st, queue: surahs, queueIndex: index, queueTitle: opts?.title ?? null }));
       startQueueAt(index, opts?.startAyahId);
@@ -253,9 +260,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setState((st) => ({ ...st, loop: v }));
   }, []);
 
-  // تغيير القارئ أثناء التشغيل → نكمّل من نفس الآية بالقارئ الجديد
+  // تغيير القارئ الافتراضي أثناء التشغيل → نكمّل من نفس الآية بالقارئ الجديد (لو مش قايمة بقارئ خاص)
   useEffect(() => {
-    if (current.current !== null) load(current.current, false);
+    if (current.current !== null && !reciterOverride.current) load(current.current, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.reciter]);
 

@@ -22,7 +22,7 @@ import { useMushafTheme } from '@/theme/ThemeContext';
 let triedAutoThisSession = false;
 
 export default function PrayerScreen() {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
   const { theme } = useMushafTheme();
   const c = theme.colors;
   const { settings, update } = useSettings();
@@ -88,56 +88,61 @@ export default function PrayerScreen() {
           <>
             {next && (
               <Card style={[styles.hero, { backgroundColor: c.accent, borderColor: c.accent }]}>
-                <Txt size={14} color={c.background} align="center">
-                  {t('nextPrayer')}
-                </Txt>
-                <Txt size={34} weight="bold" color={c.background} align="center">
-                  {t(next.key)}
-                </Txt>
-                <Txt size={18} color={c.background} align="center">
-                  {formatTime(next.time, lang)}
-                </Txt>
-                <Txt size={15} weight="medium" color={c.background} align="center" accessibilityLiveRegion="polite">
-                  {t('remaining', { t: formatDuration(next.time.getTime() - now.getTime(), lang) })}
-                </Txt>
+                <Row style={{ justifyContent: 'space-between' }}>
+                  <Txt size={13} color={c.background}>
+                    {t('nextPrayer')}
+                  </Txt>
+                  <Txt size={13} color={c.background}>
+                    {formatTime(next.time, lang)}
+                  </Txt>
+                </Row>
+                <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                  <Txt size={26} weight="bold" color={c.background}>
+                    {t(next.key)}
+                  </Txt>
+                  <Txt size={18} weight="bold" color={c.background} accessibilityLiveRegion="polite">
+                    {formatDuration(next.time.getTime() - now.getTime(), lang)}
+                  </Txt>
+                </Row>
               </Card>
             )}
 
-            <Card style={{ padding: 0 }}>
-              <Row style={[styles.trackerHead, { borderColor: c.border }]}>
-                <Txt size={15} weight="bold" style={{ flex: 1 }}>
-                  {t('prayerTracker')}
-                </Txt>
-                <Txt size={12} color="textSecondary">
-                  {t('prayerTrackerHint')}
-                </Txt>
-              </Row>
-              {PRAYERS.map((p, i) => {
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Txt size={15} weight="bold">
+                {t('prayerTracker')}
+              </Txt>
+              <Txt size={12} color="textSecondary">
+                {t('prayerTrackerHint')}
+              </Txt>
+            </Row>
+            <View style={[styles.grid, { flexDirection: dir.row }]}>
+              {PRAYERS.map((p) => {
                 const active = next?.key === p && next.time.toDateString() === now.toDateString();
+                const passed = times[p] <= now;
                 return (
-                  <Row
+                  <View
                     key={p}
                     style={[
-                      styles.timeRow,
-                      { gap: 12 },
-                      i < PRAYERS.length - 1 ? { borderBottomWidth: StyleSheet.hairlineWidth, borderColor: c.border } : {},
-                      active ? { backgroundColor: c.highlight } : {},
+                      styles.tile,
+                      { backgroundColor: active ? c.highlight : c.surface, borderColor: active ? c.accent : c.border },
                     ]}>
-                    {p === 'sunrise' ? (
-                      <View style={{ width: 28 }} />
-                    ) : (
-                      <PrayedCheck day={todayKey(now)} p={p} enabled={times[p] <= now} onMarked={setJustPrayed} />
-                    )}
-                    <Txt size={17} weight={active ? 'bold' : 'medium'} color={p === 'sunrise' ? 'textSecondary' : 'text'} style={{ flex: 1 }}>
-                      {t(p)}
-                    </Txt>
-                    <Txt size={17} weight={active ? 'bold' : 'normal'} color={active ? 'accent' : 'text'}>
+                    <Row style={{ justifyContent: 'space-between' }}>
+                      <Txt size={15} weight="bold" color={p === 'sunrise' ? 'textSecondary' : active ? 'accent' : 'text'}>
+                        {t(p)}
+                      </Txt>
+                      {p === 'sunrise' ? (
+                        <Icon name="sun" size={18} color={c.textSecondary} />
+                      ) : (
+                        <PrayedCheck day={todayKey(now)} p={p} enabled={passed} onMarked={setJustPrayed} />
+                      )}
+                    </Row>
+                    <Txt size={17} weight={active ? 'bold' : 'normal'} color={active ? 'accent' : passed ? 'textSecondary' : 'text'}>
                       {formatTime(times[p], lang)}
                     </Txt>
-                  </Row>
+                  </View>
                 );
               })}
-            </Card>
+            </View>
 
             <WeekLog now={now} />
 
@@ -183,8 +188,8 @@ function Shortcut({ icon, label, onPress }: { icon: IconName; label: string; onP
 
 const styles = StyleSheet.create({
   body: { padding: 16, gap: 14, paddingBottom: BottomTabInset + 32 },
-  hero: { gap: 4, paddingVertical: 20 },
-  timeRow: { paddingHorizontal: 16, paddingVertical: 14 },
-  trackerHead: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, borderBottomWidth: StyleSheet.hairlineWidth },
+  hero: { gap: 2, paddingVertical: 12 },
+  grid: { flexWrap: 'wrap', gap: 10 },
+  tile: { width: '31%', flexGrow: 1, borderWidth: 1, borderRadius: 14, padding: 12, gap: 8 },
 });
 

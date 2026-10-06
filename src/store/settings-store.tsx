@@ -77,6 +77,15 @@ export interface Settings {
   /** تذكير قبل خروج وقت الصلاة لو ما اتعلّمش عليها في قايمة الفروض */
   notifyMissedPrayer: boolean;
   missedReminderMin: number;
+  notifyTasbih: boolean;
+  tasbihTime: string;
+  /** تذكير «وقفت عند صفحة كذا» لو ما قريتش النهارده */
+  notifyLastRead: boolean;
+  lastReadTime: string;
+  /** العد التنازلي للصلاة الجاية على جنب الشاشة */
+  showPrayerPill: boolean;
+  /** القوايم المقترحة في تاب الاستماع */
+  showSuggestedPlaylists: boolean;
 
   // الأذكار
   removeFinishedAzkar: boolean;
@@ -132,6 +141,12 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyKahf: true,
   notifyMissedPrayer: true,
   missedReminderMin: 30,
+  notifyTasbih: true,
+  tasbihTime: '21:00',
+  notifyLastRead: true,
+  lastReadTime: '21:30',
+  showPrayerPill: true,
+  showSuggestedPlaylists: true,
 
   removeFinishedAzkar: true,
   vibrateOnFinish: true,

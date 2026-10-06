@@ -9,11 +9,25 @@ import { useI18n } from '@/i18n';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
-export function DownloadButton({ jobKey, files, label, onDelete }: { jobKey: string; files: AyahRef[]; label: string; onDelete?: () => void }) {
+export function DownloadButton({
+  jobKey,
+  files,
+  label,
+  onDelete,
+  reciter,
+}: {
+  jobKey: string;
+  files: AyahRef[];
+  label: string;
+  onDelete?: () => void;
+  /** قارئ غير الافتراضي (قارئ القايمة) */
+  reciter?: string;
+}) {
   const { theme } = useMushafTheme();
   const { t, num } = useI18n();
   const { settings } = useSettings();
-  const dl = useDownloads(settings.reciter);
+  const rid = reciter ?? settings.reciter;
+  const dl = useDownloads(rid);
   const c = theme.colors;
   if (!canDownload) return null;
 
@@ -35,7 +49,7 @@ export function DownloadButton({ jobKey, files, label, onDelete }: { jobKey: str
     );
   }
   return (
-    <Pressable onPress={() => startDownload(jobKey, settings.reciter, files)} accessibilityRole="button" accessibilityLabel={label} hitSlop={6} style={styles.btn}>
+    <Pressable onPress={() => startDownload(jobKey, rid, files)} accessibilityRole="button" accessibilityLabel={label} hitSlop={6} style={styles.btn}>
       <Icon name="download" size={20} color={c.textSecondary} />
     </Pressable>
   );

@@ -13,7 +13,7 @@ import { ayahs } from '@/data/quran';
 import { tajweedSpans } from '@/data/quran/extra';
 import { reciterById } from '@/features/audio/reciters';
 import { exportBackup, makeBackup, pickBackup } from '@/features/backup';
-import { ensurePermission, isExpoGoAndroid, notificationsSupported } from '@/features/notifications/schedule';
+import { adhanSoundAvailable, ensurePermission, isExpoGoAndroid, notificationsSupported } from '@/features/notifications/schedule';
 import { locationLabel, resolveMethod, SALAH } from '@/features/prayer/prayer';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
@@ -255,6 +255,9 @@ export default function SettingsScreen() {
               {t('changeCity')}
             </Txt>
           </SettingRow>
+          <SettingRow icon="clock" label={t('showPrayerPill')}>
+            <Toggle label={t('showPrayerPill')} value={s.showPrayerPill} onChange={(v) => update({ showPrayerPill: v })} />
+          </SettingRow>
           <SettingRow icon="location" label={t('autoLocation')}>
             <Toggle label={t('autoLocation')} value={s.autoLocation} onChange={(v) => update({ autoLocation: v })} />
           </SettingRow>
@@ -307,7 +310,10 @@ export default function SettingsScreen() {
               })}
             </View>
           )}
-          <SettingRow icon="speaker" label={t('adhanSound')}>
+          <SettingRow
+            icon="speaker"
+            label={adhanSoundAvailable ? t('adhanSoundFull') : t('adhanSound')}
+            hint={adhanSoundAvailable ? t('adhanSoundHint') : t('adhanSoundMissing')}>
             <Toggle label={t('adhanSound')} value={s.adhanSound} onChange={(v) => update({ adhanSound: v })} />
           </SettingRow>
           <SettingRow icon="clock" label={t('preReminder')}>
@@ -356,6 +362,25 @@ export default function SettingsScreen() {
               <TimeStepper value={s.wirdTime} onChange={(v) => update({ wirdTime: v })} />
             </SettingRow>
           )}
+          <SettingRow icon="tasbih" label={t('notifyTasbih')}>
+            <Toggle label={t('notifyTasbih')} value={s.notifyTasbih} onChange={(v) => setNotify({ notifyTasbih: v })} />
+          </SettingRow>
+          {s.notifyTasbih && (
+            <SettingRow label={t('tasbih')}>
+              <TimeStepper value={s.tasbihTime} onChange={(v) => update({ tasbihTime: v })} />
+            </SettingRow>
+          )}
+          <SettingRow icon="bookmark" label={t('notifyLastRead')} hint={t('notifyLastReadHint')}>
+            <Toggle label={t('notifyLastRead')} value={s.notifyLastRead} onChange={(v) => setNotify({ notifyLastRead: v })} />
+          </SettingRow>
+          {s.notifyLastRead && (
+            <SettingRow label={t('continueReading')}>
+              <TimeStepper value={s.lastReadTime} onChange={(v) => update({ lastReadTime: v })} />
+            </SettingRow>
+          )}
+          <SettingRow icon="bell" label={t('notifications')} onPress={() => router.push('/notifications')}>
+            <Icon name="chevron" size={18} color={c.textSecondary} />
+          </SettingRow>
           <SettingRow icon="calendar" label={t('notifyKahf')} last>
             <Toggle label={t('notifyKahf')} value={s.notifyKahf} onChange={(v) => setNotify({ notifyKahf: v })} />
           </SettingRow>

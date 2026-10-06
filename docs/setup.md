@@ -99,3 +99,9 @@ npm test                # اختبارات البيانات (node --test)
 ```bash
 npm run build:extra-data   # محتاج إنترنت أول مرة (بيحمّل المصادر في .quran-sources/extra)
 ```
+
+## إضافة صوت الأذان الكامل
+
+1. هات تسجيل أذان **مسموح باستخدامه** (رخصة مكتوبة أو إذن من المؤذن/الناشر) وسجّل مصدره في `docs/data.md`.
+2. حوّله لـ WAV واحفظه في `assets/sounds/adhan.wav` (لـ iOS: أقل من ٣٠ ثانية).
+3. ابنِ نسخة جديدة: `npx eas-cli@latest build --platform android --profile preview`.

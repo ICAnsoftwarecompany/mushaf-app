@@ -41,7 +41,7 @@ export function MiniPlayer() {
   const onTab = TAB_PATHS.includes(path);
   const bottom = Platform.OS === 'web' ? (onTab ? 68 : 8) : insets.bottom + (onTab ? BottomTabInset : 0) + 8;
   const s = surahOfAyah(audio.ayahId);
-  const r = reciterById(settings.reciter);
+  const r = reciterById(audio.reciter ?? settings.reciter);
 
   return (
     <View style={[styles.wrap, { bottom }]} pointerEvents="box-none">

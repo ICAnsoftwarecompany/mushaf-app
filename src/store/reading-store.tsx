@@ -23,7 +23,27 @@ export interface Playlist {
   name: string;
   surahs: number[];
   createdAt: number;
+  /** قايمة مقترحة (مفتاح الاسم في strings: pl_<key>) */
+  suggested?: string;
+  /** المستخدم غيّر اسم القايمة المقترحة */
+  renamed?: boolean;
+  /** قارئ خاص بالقايمة (غير كده القارئ الافتراضي) */
+  reciter?: string;
 }
+
+const SEEDED_KEY = 'yatlu.suggestedSeeded';
+/**
+ * القوايم المقترحة — بتتضاف مرة واحدة، وبعدها المستخدم يعدّلها أو يخفيها.
+ * ⚠️ اختيار السور محتاج مراجعة شرعية (docs/roadmap.md).
+ */
+const SUGGESTED: { key: string; surahs: number[] }[] = [
+  { key: 'ruqyah', surahs: [1, 2, 112, 113, 114] },
+  { key: 'sleep', surahs: [32, 67, 17, 39, 112, 113, 114] },
+  { key: 'morning', surahs: [1, 36, 55, 56] },
+  { key: 'rizq', surahs: [56, 51, 65] },
+  { key: 'hasad', surahs: [1, 112, 113, 114, 68] },
+  { key: 'hamm', surahs: [94, 93, 12, 21] },
+];
 
 /** الختمة والورد اليومي */
 export interface Khatma {
@@ -70,6 +90,7 @@ interface ReadingContextValue {
   addToPlaylist: (id: string, surah: number) => void;
   removeFromPlaylist: (id: string, index: number) => void;
   movePlaylistItem: (id: string, from: number, to: number) => void;
+  setPlaylistReciter: (id: string, reciter: string | undefined) => void;
   /** للنسخ الاحتياطي */
   exportData: () => ExportedData;
   importData: (d: Partial<ExportedData>) => void;
@@ -103,7 +124,14 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(PLAYLISTS_KEY),
           AsyncStorage.getItem(PRAYER_LOG_KEY),
         ]);
-        if (pl) setPlaylists(JSON.parse(pl));
+        let lists: Playlist[] = pl ? JSON.parse(pl) : [];
+        if (!(await AsyncStorage.getItem(SEEDED_KEY))) {
+          const t0 = Date.now();
+          lists = [...SUGGESTED.map((x, i) => ({ id: `sg-${x.key}`, name: x.key, surahs: x.surahs, createdAt: t0 + i, suggested: x.key })), ...lists];
+          persist(PLAYLISTS_KEY, lists);
+          AsyncStorage.setItem(SEEDED_KEY, '1').catch(() => {});
+        }
+        setPlaylists(lists);
         if (pr) setPrayerLog(JSON.parse(pr));
         if (lr) setLastRead(JSON.parse(lr));
         if (bm) setBookmarks(JSON.parse(bm));
@@ -203,7 +231,14 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
     },
     [updatePlaylists]
   );
-  const renamePlaylist = useCallback((id: string, name: string) => editPlaylist(id, (p) => ({ ...p, name: name.trim() || p.name })), [editPlaylist]);
+  const renamePlaylist = useCallback(
+    (id: string, name: string) => editPlaylist(id, (p) => (name.trim() ? { ...p, name: name.trim(), renamed: true } : p)),
+    [editPlaylist]
+  );
+  const setPlaylistReciter = useCallback(
+    (id: string, reciter: string | undefined) => editPlaylist(id, (p) => ({ ...p, reciter })),
+    [editPlaylist]
+  );
   const deletePlaylist = useCallback((id: string) => updatePlaylists((prev) => prev.filter((p) => p.id !== id)), [updatePlaylists]);
   const addToPlaylist = useCallback((id: string, surah: number) => editPlaylist(id, (p) => ({ ...p, surahs: [...p.surahs, surah] })), [editPlaylist]);
   const removeFromPlaylist = useCallback(
@@ -292,11 +327,12 @@ export function ReadingProvider({ children }: { children: React.ReactNode }) {
       addToPlaylist,
       removeFromPlaylist,
       movePlaylistItem,
+      setPlaylistReciter,
       exportData,
       importData,
       ready,
     }),
-    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, playlists, prayerLog, togglePrayed, createPlaylist, renamePlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist, movePlaylistItem, exportData, importData, ready]
+    [lastRead, setLastPage, bookmarks, isPageBookmarked, togglePageBookmark, addAyahBookmark, removeBookmark, khatma, markWirdDone, newKhatma, playlists, prayerLog, togglePrayed, createPlaylist, renamePlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist, movePlaylistItem, setPlaylistReciter, exportData, importData, ready]
   );
 
   return <ReadingContext.Provider value={value}>{children}</ReadingContext.Provider>;

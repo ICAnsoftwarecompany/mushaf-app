@@ -4,6 +4,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Icon, Row, Txt } from '@/components/ui';
 import { getSurah, surahLabel } from '@/data/quran';
+import { playlistName } from '@/features/audio/playlists';
 import { useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
@@ -45,13 +46,13 @@ export function AddToPlaylist({ surah, onClose }: { surah: number | null; onClos
                   accessibilityRole="button"
                   onPress={() => {
                     reading.addToPlaylist(p.id, surah);
-                    onClose(p.name);
+                    onClose(playlistName(p, t));
                   }}>
                   {({ pressed }) => (
                     <Row style={[styles.row, { borderColor: c.border }, pressed ? { backgroundColor: c.highlight } : {}]}>
                       <Icon name="playlist" size={20} color={c.textSecondary} />
                       <Txt size={16} style={{ flex: 1 }}>
-                        {p.name}
+                        {playlistName(p, t)}
                       </Txt>
                       <Txt size={13} color="textSecondary">
                         {t('surahsCountN', { n: num(p.surahs.length) })}

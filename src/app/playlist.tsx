@@ -16,6 +16,8 @@ import { getSurah, surahLabel, surahOfAyah, surahs } from '@/data/quran';
 import { normalizeArabic as normalize } from '@/data/quran/search';
 import { useAudio } from '@/features/audio/audio-store';
 import { jobKey, surahFiles } from '@/features/audio/downloads';
+import { playlistName } from '@/features/audio/playlists';
+import { RECITERS, reciterById } from '@/features/audio/reciters';
 import { useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
@@ -30,6 +32,9 @@ export default function PlaylistScreen() {
   const [renaming, setRenaming] = useState(false);
   const [picking, setPicking] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [pickingReciter, setPickingReciter] = useState(false);
+  const { theme } = useMushafTheme();
+  const c = theme.colors;
 
   const p = reading.playlists.find((x) => x.id === id);
   if (!p) {
@@ -44,13 +49,16 @@ export default function PlaylistScreen() {
     );
   }
 
-  const isThis = audio.queueTitle === p.name && audio.ayahId != null;
+  const name = playlistName(p, t);
+  const isThis = audio.queueTitle === name && audio.ayahId != null;
+  const rid = p.reciter ?? settings.reciter;
+  const r = reciterById(rid);
   const playingIndex = isThis ? audio.queueIndex : -1;
   const playingSurah = audio.ayahId != null ? surahOfAyah(audio.ayahId).id : null;
 
   return (
     <Screen
-      title={p.name}
+      title={name}
       subtitle={t('surahsCountN', { n: num(p.surahs.length) })}
       back
       actions={<HeaderButton icon="pencil" label={t('rename')} onPress={() => setRenaming(true)} />}>
@@ -61,11 +69,25 @@ export default function PlaylistScreen() {
         ListHeaderComponent={
           <View style={{ gap: 10, paddingBottom: 8 }}>
             {isThis ? <NowPlaying /> : null}
+            <Pressable onPress={() => setPickingReciter(true)} accessibilityRole="button" accessibilityLabel={t('playlistReciter')}>
+              <Row style={[styles.reciterRow, { borderColor: c.border, backgroundColor: c.surface }]}>
+                <Icon name="person" size={20} color={c.accent} />
+                <View style={{ flex: 1 }}>
+                  <Txt size={12} color="textSecondary">
+                    {t('playlistReciter')}
+                  </Txt>
+                  <Txt size={15} weight="bold">
+                    {`${lang === 'ar' ? r.ar : r.en}${p.reciter ? '' : ` · ${t('defaultReciter')}`}`}
+                  </Txt>
+                </View>
+                <Icon name="chevron" size={18} color={c.textSecondary} />
+              </Row>
+            </Pressable>
             <Row style={{ gap: 10 }}>
               <Btn
                 title={t('playAll')}
                 icon="play"
-                onPress={() => audio.playSurahs(p.surahs, 0, { title: p.name })}
+                onPress={() => audio.playSurahs(p.surahs, 0, { title: name, reciter: p.reciter })}
                 disabled={!p.surahs.length}
                 style={{ flex: 1 }}
               />
@@ -103,10 +125,10 @@ export default function PlaylistScreen() {
               title={surahLabel(surah, lang)}
               subtitle={t('ayahsCount', { n: num(surah.ayahs) })}
               active={index === playingIndex && playingSurah === s}
-              onPress={() => audio.playSurahs(p.surahs, index, { title: p.name })}>
+              onPress={() => audio.playSurahs(p.surahs, index, { title: name, reciter: p.reciter })}>
               <IconBtn icon="up" label="↑" onPress={() => reading.movePlaylistItem(p.id, index, index - 1)} disabled={index === 0} />
               <IconBtn icon="down" label="↓" onPress={() => reading.movePlaylistItem(p.id, index, index + 1)} disabled={index === p.surahs.length - 1} />
-              <DownloadButton jobKey={jobKey(settings.reciter, 's', s)} files={surahFiles(s)} label={t('downloadSurah')} />
+              <DownloadButton jobKey={jobKey(rid, 's', s)} files={surahFiles(s)} label={t('downloadSurah')} reciter={rid} />
               <IconBtn icon="close" label={t('delete')} onPress={() => reading.removeFromPlaylist(p.id, index)} />
             </ListRow>
           );
@@ -116,7 +138,7 @@ export default function PlaylistScreen() {
       <NamePrompt
         visible={renaming}
         title={t('rename')}
-        initial={p.name}
+        initial={name}
         confirmLabel={t('save')}
         onCancel={() => setRenaming(false)}
         onSubmit={(name) => {
@@ -124,8 +146,58 @@ export default function PlaylistScreen() {
           setRenaming(false);
         }}
       />
+      <ReciterPicker
+        visible={pickingReciter}
+        value={p.reciter}
+        onClose={() => setPickingReciter(false)}
+        onPick={(id) => {
+          reading.setPlaylistReciter(p.id, id);
+          setPickingReciter(false);
+        }}
+      />
       <SurahPicker visible={picking} onClose={() => setPicking(false)} onPick={(s) => reading.addToPlaylist(p.id, s)} added={p.surahs} />
     </Screen>
+  );
+}
+
+/** قارئ القايمة: الافتراضي أو قارئ معيّن */
+function ReciterPicker({ visible, value, onClose, onPick }: { visible: boolean; value?: string; onClose: () => void; onPick: (id: string | undefined) => void }) {
+  const { theme } = useMushafTheme();
+  const { t, lang } = useI18n();
+  const c = theme.colors;
+  const options: { id: string | undefined; label: string }[] = [
+    { id: undefined, label: t('defaultReciter') },
+    ...RECITERS.map((x) => ({ id: x.id, label: lang === 'ar' ? x.ar : x.en })),
+  ];
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.sheetBackdrop}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t('close')} />
+        <View style={[styles.sheet, { backgroundColor: c.surface, borderColor: c.border }]}>
+          <Txt size={18} weight="bold">
+            {t('playlistReciter')}
+          </Txt>
+          <FlatList
+            data={options}
+            style={{ maxHeight: 420 }}
+            keyExtractor={(o) => o.id ?? 'default'}
+            renderItem={({ item: o }) => {
+              const sel = o.id === value;
+              return (
+                <Pressable onPress={() => onPick(o.id)} accessibilityRole="radio" accessibilityState={{ selected: sel }}>
+                  <Row style={[styles.pickRow, { borderColor: c.border }]}>
+                    <Txt size={16} weight={sel ? 'bold' : 'normal'} style={{ flex: 1 }}>
+                      {o.label}
+                    </Txt>
+                    {sel ? <Icon name="check" size={20} color={c.accent} /> : null}
+                  </Row>
+                </Pressable>
+              );
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -200,4 +272,7 @@ const styles = StyleSheet.create({
   picker: { flex: 1, paddingTop: 24, width: '100%', maxWidth: 640, alignSelf: 'center' },
   search: { marginHorizontal: 16, marginVertical: 12, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
   pickRow: { gap: 10, paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },
+  reciterRow: { gap: 10, borderWidth: 1, borderRadius: 14, padding: 12 },
+  sheetBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: { borderTopLeftRadius: 18, borderTopRightRadius: 18, borderWidth: 1, padding: 18, paddingBottom: 32, gap: 8, width: '100%', maxWidth: 640, alignSelf: 'center' },
 });

@@ -71,7 +71,7 @@ export function Screen({ title, titleNode, subtitle, back, actions, children }: 
 }
 
 /** زرار أيقونة صغير للهيدر */
-export function HeaderButton({ icon, label, onPress }: { icon: Parameters<typeof Icon>[0]['name']; label: string; onPress: () => void }) {
+export function HeaderButton({ icon, label, onPress, badge }: { icon: Parameters<typeof Icon>[0]['name']; label: string; onPress: () => void; badge?: number }) {
   const { theme } = useMushafTheme();
   return (
     <Pressable
@@ -81,6 +81,13 @@ export function HeaderButton({ icon, label, onPress }: { icon: Parameters<typeof
       hitSlop={8}
       style={({ pressed }) => [styles.hbtn, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, opacity: pressed ? 0.6 : 1 }]}>
       <Icon name={icon} size={20} color={theme.colors.accent} />
+      {badge ? (
+        <View style={[styles.badge, { backgroundColor: '#C0392B', borderColor: theme.colors.background }]}>
+          <Txt size={10} weight="bold" color="#FFFFFF" align="center">
+            {badge > 9 ? '9+' : String(badge)}
+          </Txt>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -91,5 +98,6 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, gap: 10 },
   back: { padding: 4 },
   content: { flex: 1 },
+  badge: { position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 9, borderWidth: 1.5, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center' },
   hbtn: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });

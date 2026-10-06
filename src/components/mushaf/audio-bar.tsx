@@ -20,17 +20,18 @@ export function AudioBar() {
   const { theme } = useMushafTheme();
   const { settings, update } = useSettings();
   const c = theme.colors;
-  const dl = useDownloads(settings.reciter);
+  const reciterId = audio.reciter ?? settings.reciter;
+  const dl = useDownloads(reciterId);
 
   if (audio.ayahId == null) return null;
   const s = surahOfAyah(audio.ayahId);
-  const reciter = reciterById(settings.reciter);
-  const key = jobKey(settings.reciter, 's', s.id);
+  const reciter = reciterById(reciterId);
+  const key = jobKey(reciterId, 's', s.id);
   const files = surahFiles(s.id);
   const downloaded = dl.isComplete(files);
   const job = dl.job(key);
   const progress = job ? job.done / job.files.length : null;
-  const download = () => startDownload(key, settings.reciter, files);
+  const download = () => startDownload(key, reciterId, files);
 
   return (
     <View style={[styles.bar, { backgroundColor: c.surface, borderColor: c.border }]}>

@@ -21,7 +21,7 @@ export function NowPlaying() {
 
   const s = surahOfAyah(audio.ayahId);
   const n = ayahNumber(audio.ayahId);
-  const r = reciterById(settings.reciter);
+  const r = reciterById(audio.reciter ?? settings.reciter);
   const fraction = n / s.ayahs;
 
   return (

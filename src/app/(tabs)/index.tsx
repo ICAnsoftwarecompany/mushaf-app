@@ -10,6 +10,7 @@ import { HeaderButton, Screen } from '@/components/screen';
 import { Btn, Card, Row, Segmented, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
 import { getSurah, juzLabel, juzList, type Juz, quarterLabel, quarters, type Surah, surahLabel, surahs, surahsOfPage } from '@/data/quran';
+import { useInbox } from '@/features/notifications/inbox';
 import { useI18n } from '@/i18n';
 import { todayKey, useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
@@ -26,6 +27,7 @@ export default function IndexScreen() {
   const { t, lang } = useI18n();
   const { theme } = useMushafTheme();
   const c = theme.colors;
+  const inbox = useInbox();
   const [tab, setTab] = useState<Tab>('surahs');
 
   const header = (
@@ -58,6 +60,7 @@ export default function IndexScreen() {
       subtitle={t('indexSubtitle')}
       actions={
         <>
+          <HeaderButton icon="bell" label={t('notifications')} onPress={() => router.push('/notifications')} badge={inbox.unread} />
           <HeaderButton icon="search" label={t('tabSearch')} onPress={() => router.push('/search')} />
           <HeaderButton icon="goto" label={t('goTo')} onPress={() => router.push('/goto')} />
           <HeaderButton icon="bookmark" label={t('bookmarks')} onPress={() => router.push('/bookmarks')} />
