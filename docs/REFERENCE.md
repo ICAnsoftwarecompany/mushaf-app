@@ -242,6 +242,8 @@ npm run docs:docx              # نسخة Word من الملف ده
 4. البناء بياخد ~10–20 دقيقة. في الآخر هيطبع **لينك + QR**: افتحه من الموبايل ونزّل الـ APK وسطّبه (هيطلب السماح بالتثبيت من مصادر غير معروفة).
 5. **للمتجر:** `npx eas-cli@latest build --platform android --profile production` (ملف AAB) ثم `npx eas-cli@latest submit --platform android`.
 
+**المشروع مربوط بالفعل** بحساب `moumenhafez` (مشروع `@moumenhafez/yatlu`)، ومفتاح التوقيع محفوظ على Expo — فالخطوة ٢ مش محتاجة تتكرر. أي بناء جديد: `npm run build:apk` بس. الحساب المجاني بيقف في طابور قبل البناء (ممكن ساعة أو أكتر).
+
 **بروفايلات `eas.json`:** `preview` = APK للتجربة، `production` = AAB للمتجر (رقم البناء بيزيد لوحده).
 
 ---

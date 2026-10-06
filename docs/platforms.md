@@ -29,6 +29,7 @@
 | Android package | `com.icansoftware.yatlu` | `app.json` → `expo.android.package` |
 | iOS bundle ID | `com.icansoftware.yatlu` | `app.json` → `expo.ios.bundleIdentifier` |
 | رقم الإصدار | `1.0.0` | `app.json` → `expo.version` |
+| مشروع EAS | `@moumenhafez/yatlu` (`8817d3ac-af3d-429e-8d06-e58f741e872d`) | `app.json` → `expo.owner` و `expo.extra.eas.projectId` |
 
 > ⚠️ الـ package والـ bundle ID **مينفعش يتغيروا بعد أول نشر** على المتجر. لو عايز تغيّرهم، غيّرهم دلوقتي.
 
