@@ -22,13 +22,14 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="المصحف الشريف — رواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت" />
+        <meta name="description" content="يتلو — المصحف الشريف برواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت" />
         <meta name="theme-color" content="#FDF6E3" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1A1A1A" media="(prefers-color-scheme: dark)" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="المصحف" />
+        <meta name="apple-mobile-web-app-title" content="يتلو" />
+        <title>يتلو — المصحف الشريف</title>
         <ScrollViewStyleReset />
         <script dangerouslySetInnerHTML={{ __html: registerServiceWorker }} />
       </head>

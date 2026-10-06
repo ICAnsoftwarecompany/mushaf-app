@@ -15,9 +15,10 @@
 
 | | القيمة | الملف |
 |---|---|---|
-| اسم التطبيق | المصحف | `app.json` → `expo.name` |
-| Android package | `com.icansoftware.mushaf` | `app.json` → `expo.android.package` |
-| iOS bundle ID | `com.icansoftware.mushaf` | `app.json` → `expo.ios.bundleIdentifier` |
+| اسم التطبيق | يتلو | `app.json` → `expo.name` |
+| الـ slug والـ scheme | `yatlu` | `app.json` → `expo.slug` و `expo.scheme` |
+| Android package | `com.icansoftware.yatlu` | `app.json` → `expo.android.package` |
+| iOS bundle ID | `com.icansoftware.yatlu` | `app.json` → `expo.ios.bundleIdentifier` |
 | رقم الإصدار | `1.0.0` | `app.json` → `expo.version` |
 
 > ⚠️ الـ package والـ bundle ID **مينفعش يتغيروا بعد أول نشر** على المتجر. لو عايز تغيّرهم، غيّرهم دلوقتي.
@@ -108,7 +109,7 @@ npx eas-cli@latest submit --platform ios      # رفع على App Store Connect 
 ## قبل أي نشر
 
 - [ ] مراجعة متخصص لعرض الصفحات (القاعدة 1 في [rules.md](rules.md))
-- [ ] أيقونة التطبيق وشاشة البداية بهوية المصحف (لسه بتاعة Expo)
+- [x] أيقونة التطبيق وشاشة البداية بهوية «يتلو» ([brand.md](brand.md))
 - [ ] تجربة على أندرويد و iOS والويب
 - [ ] زيادة `version` في `app.json` وتسجيل التغييرات في [changelog.md](changelog.md)
 - [ ] صفحة سياسة الخصوصية (مطلوبة في المتاجر، حتى لو التطبيق مش بيجمع بيانات)

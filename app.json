@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "المصحف",
-    "slug": "mushaf-app",
+    "name": "يتلو",
+    "slug": "yatlu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mushafapp",
+    "scheme": "yatlu",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.icansoftware.mushaf",
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.icansoftware.yatlu",
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -17,13 +17,13 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FDF6E3",
+        "backgroundColor": "#1F463D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.icansoftware.mushaf"
+      "package": "com.icansoftware.yatlu"
     },
     "web": {
       "output": "static",
@@ -34,9 +34,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FDF6E3",
+          "backgroundColor": "#1F463D",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 180
         }
       ]
     ],
@@ -44,6 +44,6 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "المصحف الشريف — رواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت"
+    "description": "يتلو — المصحف الشريف برواية حفص عن عاصم، بترتيب صفحات مصحف المدينة، ويعمل بدون إنترنت"
   }
 }

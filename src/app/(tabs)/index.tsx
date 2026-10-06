@@ -62,7 +62,7 @@ export default function IndexScreen() {
   );
 
   return (
-    <Screen title="المصحف" subtitle="رواية حفص عن عاصم · مصحف المدينة">
+    <Screen title="يتلو" subtitle="المصحف الشريف · رواية حفص عن عاصم · مصحف المدينة">
       {tab === 'surahs' ? (
         <FlashList
           key="surahs"

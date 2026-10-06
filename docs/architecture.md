@@ -1,7 +1,7 @@
 # هيكل المشروع
 
 ```
-mushaf-app/
+mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── AGENTS.md / CLAUDE.md        تعليمات لأدوات الذكاء الاصطناعي (بتشاور على docs/)
 ├── app.json                     إعدادات Expo (الاسم، الـ package والـ bundle ID، الأيقونة، لون الـ splash)
 ├── eas.json                     بروفايلات بناء أندرويد و iOS (preview و production)
@@ -11,7 +11,9 @@ mushaf-app/
 ├── docs/                        التوثيق (الفولدر ده)
 ├── scripts/
 │   └── build-quran-data.mjs     بيبني بيانات المصحف من المصادر ويتحقق منها
-├── assets/                      الأيقونات والصور
+├── assets/
+│   ├── brand/                   ملفات اللوجو الأصلية (SVG)
+│   └── images/                  الأيقونات وشاشة البداية (PNG متولّدة من brand/)
 └── src/
     ├── app/                     الشاشات (Expo Router) — كل ملف = شاشة
     │   ├── _layout.tsx          الجذر: تحميل الخط + الثيم + حالة القراءة + Stack
@@ -25,6 +27,8 @@ mushaf-app/
     │   └── mushaf/
     │       └── [page].tsx       القارئ (+ generateStaticParams لبناء الـ 604 صفحة على الويب)
     ├── components/
+    │   ├── brand/
+    │   │   └── intro-screen.tsx الشاشة الافتتاحية (اللوجو + آية الاسم)
     │   ├── app-tabs.tsx         التابات الأصلية للموبايل (NativeTabs)
     │   ├── app-tabs.web.tsx     شريط التابات على الويب
     │   ├── screen.tsx           غلاف موحّد للشاشات
@@ -35,6 +39,7 @@ mushaf-app/
     │       ├── page-pager.tsx       تقليب الصفحات (موبايل — FlatList أفقية)
     │       └── page-pager.web.tsx   تقليب الصفحات (ويب — أزرار وأسهم)
     ├── constants/
+    │   ├── brand.ts             ألوان الهوية وآية الاسم
     │   ├── theme.ts             المسافات، الخطوط، اسم خط القرآن، أنواع الألوان
     │   └── rtl.ts               قيم الاتجاه (ROW، TEXT_RIGHT، rtlText) حسب لغة الجهاز
     ├── data/quran/
@@ -56,7 +61,7 @@ mushaf-app/
 ```
 ThemeProvider            (src/theme/ThemeContext.tsx)
 └── ReadingProvider      (src/store/reading-store.tsx)
-    └── RootStack        بيستنى الخط والإعدادات المحفوظة، وبعدين يخفي الـ splash
+    └── RootStack        بيستنى الخط والإعدادات المحفوظة، وبعدين يخفي الـ splash ويعرض الشاشة الافتتاحية فوق التطبيق
         ├── (tabs)
         └── mushaf/[page]
 ```
