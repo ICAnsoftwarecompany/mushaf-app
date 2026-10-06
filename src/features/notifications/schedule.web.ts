@@ -7,3 +7,4 @@ export async function ensurePermission(): Promise<boolean> {
  
 export async function rescheduleAll(_s: Settings): Promise<void> {}
 export const notificationsSupported = false;
+export const isExpoGoAndroid = false;

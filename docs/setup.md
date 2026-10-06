@@ -75,7 +75,8 @@ npx expo start --tunnel
 | التعديلات مش بتظهر | `npx expo start --clear` |
 | صفحة المصحف فاضية على أندرويد | اتصلحت (القارئ بقى بيستخدم FlatList بدل PagerView). اعمل `git pull` و `npm install` و `npx expo start --clear` |
 | ترتيب الكلمات أو المحاذاة مقلوبة | اتأكد إن الشاشة بتستخدم `Row` و `Txt` من `src/components/ui` أو `useI18n().dir` (شوف [i18n.md](i18n.md)) |
-| الإشعارات أو التلاوة في الخلفية مش شغالة في Expo Go | جرّب على development build (`npx expo run:android`) |
+| `expo-notifications: Android Push notifications ... removed from Expo Go` | اتصلح: المكتبة مبقتش بتتحمّل في Expo Go على أندرويد. اعمل `git pull`. الإشعارات نفسها محتاجة development build |
+| الإشعارات أو التلاوة في الخلفية مش شغالة في Expo Go | جرّب على development build (`eas build --profile development` أو `npx expo run:android`) أو APK من بروفايل `preview` |
 | `npx expo install` بيفشل بسبب الشبكة | `npm install <pkg>@<النسخة>` بالنسخة اللي في `node_modules/expo/bundledNativeModules.json` |
 | ميزة محتاجة مكتبة native مش في Expo Go | محتاج development build: `npx expo install expo-dev-client` وبعدين `npx expo run:android` |
 

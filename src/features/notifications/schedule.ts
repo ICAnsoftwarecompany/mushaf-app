@@ -3,7 +3,8 @@
  * والورد اليومي، وسورة الكهف يوم الجمعة.
  * بيتعاد جدولتها كل ما الإعدادات تتغير أو التطبيق يتفتح (iOS بيسمح بـ 64 إشعار مجدول بس).
  */
-import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import type * as NotificationsModule from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { computeTimes, locationLabel, SALAH } from '@/features/prayer/prayer';
@@ -14,9 +15,25 @@ const CH_ADHAN = 'adhan';
 const CH_ADHAN_SILENT = 'adhan-silent';
 const CH_REMINDERS = 'reminders';
 
+/**
+ * Expo Go على أندرويد (من SDK 53) بيرمي خطأ بمجرد استيراد expo-notifications،
+ * فالمكتبة بتتحمّل وقت الحاجة بس، وفي Expo Go أندرويد الإشعارات بتتقفل (محتاج development build).
+ */
+export const isExpoGoAndroid =
+  Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+export const notificationsSupported = !isExpoGoAndroid;
+
+let mod: typeof NotificationsModule | null = null;
+function load(): typeof NotificationsModule | null {
+  if (!notificationsSupported) return null;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  if (!mod) mod = require('expo-notifications') as typeof NotificationsModule;
+  return mod;
+}
+
 let configured = false;
 
-async function configure() {
+async function configure(Notifications: typeof NotificationsModule) {
   if (configured) return;
   configured = true;
   Notifications.setNotificationHandler({
@@ -48,7 +65,9 @@ async function configure() {
 }
 
 export async function ensurePermission(): Promise<boolean> {
-  await configure();
+  const Notifications = load();
+  if (!Notifications) return false;
+  await configure(Notifications);
   const cur = await Notifications.getPermissionsAsync();
   if (cur.granted) return true;
   if (!cur.canAskAgain) return false;
@@ -62,7 +81,9 @@ const hm = (s: string) => {
 };
 
 export async function rescheduleAll(s: Settings): Promise<void> {
-  await configure();
+  const Notifications = load();
+  if (!Notifications) return;
+  await configure(Notifications);
   await Notifications.cancelAllScheduledNotificationsAsync();
   const anything = s.notifyAdhan || s.notifyAzkar || s.notifyWird || s.notifyKahf;
   if (!anything) return;
@@ -71,11 +92,11 @@ export async function rescheduleAll(s: Settings): Promise<void> {
 
   const t = (k: Parameters<typeof translate>[1], v?: Record<string, string | number>) => translate(s.language, k, v);
   const jobs: Promise<string>[] = [];
-  const schedule = (title: string, body: string, trigger: Notifications.NotificationTriggerInput, channel: string, sound: boolean) =>
+  const schedule = (title: string, body: string, trigger: NotificationsModule.NotificationTriggerInput, channel: string, sound: boolean) =>
     jobs.push(
       Notifications.scheduleNotificationAsync({
         content: { title, body, sound: sound ? 'default' : undefined },
-        trigger: Platform.OS === 'android' ? { ...(trigger as object), channelId: channel } as Notifications.NotificationTriggerInput : trigger,
+        trigger: Platform.OS === 'android' ? { ...(trigger as object), channelId: channel } as NotificationsModule.NotificationTriggerInput : trigger,
       })
     );
 
@@ -126,4 +147,3 @@ export async function rescheduleAll(s: Settings): Promise<void> {
   await Promise.allSettled(jobs);
 }
 
-export const notificationsSupported = true;

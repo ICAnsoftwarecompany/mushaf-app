@@ -13,7 +13,7 @@ import { ayahs } from '@/data/quran';
 import { tajweedSpans } from '@/data/quran/extra';
 import { reciterById } from '@/features/audio/reciters';
 import { exportBackup, makeBackup, pickBackup } from '@/features/backup';
-import { ensurePermission, notificationsSupported } from '@/features/notifications/schedule';
+import { ensurePermission, isExpoGoAndroid, notificationsSupported } from '@/features/notifications/schedule';
 import { locationLabel, resolveMethod, SALAH } from '@/features/prayer/prayer';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
@@ -274,7 +274,7 @@ export default function SettingsScreen() {
         {/* ───── الإشعارات ───── */}
         <Section
           title={t('secNotifications')}
-          footer={!notificationsSupported ? t('notificationsWebNote') : notifDenied ? t('notificationsDenied') : undefined}>
+          footer={isExpoGoAndroid ? t('notificationsExpoGoNote') : !notificationsSupported ? t('notificationsWebNote') : notifDenied ? t('notificationsDenied') : undefined}>
           <SettingRow icon="bell" label={t('notifyAdhan')}>
             <Toggle label={t('notifyAdhan')} value={s.notifyAdhan} onChange={(v) => setNotify({ notifyAdhan: v })} />
           </SettingRow>
