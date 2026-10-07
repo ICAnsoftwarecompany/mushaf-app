@@ -11,6 +11,9 @@ export async function ensurePermission(): Promise<boolean> {
   return false;
 }
 export async function scheduleOnDevice(_plan: PlannedNotif[], _s: Settings): Promise<void> {}
+export async function testAdhan(_s: Settings): Promise<boolean> {
+  return false;
+}
 export async function muteAdhan(_id?: string): Promise<void> {}
 export function onNotificationTap(_cb: (route: string, id: string) => void): () => void {
   return () => {};

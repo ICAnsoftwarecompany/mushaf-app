@@ -152,6 +152,33 @@ export async function scheduleOnDevice(plan: PlannedNotif[], s: Settings): Promi
   );
 }
 
+/** إشعار أذان تجريبي بعد ١٠ ثواني (من الإعدادات) — علشان المستخدم يتأكد من الصوت والإشعار والتطبيق مقفول */
+export async function testAdhan(s: Settings): Promise<boolean> {
+  const N = load();
+  if (!N) return false;
+  const ok = await ensurePermission();
+  if (!ok) return false;
+  await registerAdhanActions(N, s.language);
+  const ar = s.language === 'ar';
+  await N.scheduleNotificationAsync({
+    identifier: `adhan:test:${Date.now()}`,
+    content: {
+      title: ar ? 'تجربة: حان الآن موعد الصلاة' : 'Test: it is time for prayer',
+      body: ar ? 'لو سامع الأذان وشايف الإشعار ده، كل حاجة شغالة ✓' : 'If you hear the adhan and see this, everything works ✓',
+      sound: s.adhanSound ? (adhanSoundAvailable ? ADHAN_FILE : 'default') : undefined,
+      data: { route: '/settings?focus=adhan' },
+      categoryIdentifier: ADHAN_CATEGORY,
+      priority: N.AndroidNotificationPriority.MAX,
+    },
+    trigger: {
+      type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 10,
+      ...(Platform.OS === 'android' ? { channelId: s.adhanSound ? CH_ADHAN : CH_ADHAN_SILENT } : {}),
+    } as NotificationsModule.NotificationTriggerInput,
+  });
+  return true;
+}
+
 /** لما المستخدم يدوس على إشعار (والتطبيق مفتوح أو بيتفتح منه) */
 export function onNotificationTap(cb: (route: string, id: string) => void): () => void {
   const N = load();

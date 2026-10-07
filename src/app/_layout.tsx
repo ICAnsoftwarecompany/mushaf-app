@@ -21,7 +21,7 @@ import { IntroScreen } from '@/components/brand/intro-screen';
 import { AudioProvider } from '@/features/audio/audio-store';
 import { loadInbox, markRead, refreshInboxClock, syncInbox } from '@/features/notifications/inbox';
 import { planNotifications } from '@/features/notifications/plan';
-import { onNotificationTap, scheduleOnDevice } from '@/features/notifications/schedule';
+import { ensurePermission, onNotificationTap, scheduleOnDevice } from '@/features/notifications/schedule';
 import { ReadingProvider, useReading } from '@/store/reading-store';
 import { SettingsProvider, useSettings } from '@/store/settings-store';
 import { ThemeProvider, useMushafTheme } from '@/theme/ThemeContext';
@@ -32,7 +32,7 @@ SplashScreen.preventAutoHideAsync();
  * التنبيهات: خطة واحدة (plan.ts) بتتحسب لما الإعدادات أو الفروض أو القراءة تتغير أو التطبيق يرجع،
  * ومنها: مركز التنبيهات جوه التطبيق + إشعارات الموبايل. والضغط على إشعار بيفتح الشاشة بتاعته.
  */
-function NotificationsSync() {
+function NotificationsSync({ canAsk }: { canAsk: boolean }) {
   const { settings, ready } = useSettings();
   const { prayerLog, khatma, lastRead } = useReading();
   const lastReadDay = lastRead ? new Date(lastRead.at).toDateString() : '';
@@ -54,6 +54,20 @@ function NotificationsSync() {
       unTap();
     };
   }, []);
+
+  // طلب إذن الإشعارات مرة عند فتح التطبيق (بعد الشاشة الافتتاحية) لو أي تنبيه مفعّل —
+  // أندرويد ١٣+ بيمنع كل الإشعارات لحد ما المستخدم يوافق
+  const anyNotify =
+    settings.notifyAdhan || settings.notifyAzkar || settings.notifyWird || settings.notifyKahf || settings.notifyMissedPrayer || settings.notifyTasbih || settings.notifyGaza || settings.notifyLastRead;
+  useEffect(() => {
+    if (!ready || !canAsk || !anyNotify) return;
+    const t = setTimeout(() => {
+      ensurePermission()
+        .then((ok) => ok && setActive((n) => n + 1))
+        .catch(() => {});
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [ready, canAsk, anyNotify]);
 
   useEffect(() => {
     if (!ready) return;
@@ -85,7 +99,7 @@ function RootStack() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <NotificationsSync />
+      <NotificationsSync canAsk={!settings.showIntro || introDone} />
       <Stack
         screenOptions={{
           headerShown: false,

@@ -4,7 +4,7 @@
  */
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
 import { Icon, Row, Section, Segmented, SettingRow, Stepper, Toggle, Txt } from '@/components/ui';
@@ -13,7 +13,7 @@ import { ayahs } from '@/data/quran';
 import { tajweedSpans } from '@/data/quran/extra';
 import { reciterById } from '@/features/audio/reciters';
 import { exportBackup, makeBackup, pickBackup } from '@/features/backup';
-import { adhanSoundAvailable, ensurePermission, isExpoGoAndroid, notificationsSupported } from '@/features/notifications/schedule';
+import { adhanSoundAvailable, ensurePermission, isExpoGoAndroid, notificationsSupported, testAdhan } from '@/features/notifications/schedule';
 import { locationLabel, resolveMethod, SALAH } from '@/features/prayer/prayer';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
@@ -29,6 +29,7 @@ export default function SettingsScreen() {
   const { focus } = useLocalSearchParams<{ focus?: string }>();
   const scrollRef = useRef<ScrollView>(null);
   const [notifY, setNotifY] = useState<number | null>(null);
+  const [testMsg, setTestMsg] = useState<string | null>(null);
   useEffect(() => {
     if (focus === 'adhan' && notifY != null) scrollRef.current?.scrollTo({ y: notifY, animated: true });
   }, [focus, notifY]);
@@ -306,6 +307,23 @@ export default function SettingsScreen() {
         <Section
           title={t('secNotifications')}
           footer={isExpoGoAndroid ? t('notificationsExpoGoNote') : !notificationsSupported ? t('notificationsWebNote') : notifDenied ? t('notificationsDenied') : undefined}>
+          {notificationsSupported ? (
+            <>
+              <SettingRow
+                icon="speaker"
+                label={t('testAdhan')}
+                hint={testMsg ?? t('testAdhanHint')}
+                onPress={async () => {
+                  const ok = await testAdhan(s);
+                  setTestMsg(ok ? t('testAdhanSent') : t('testAdhanDenied'));
+                }}>
+                <Icon name="play" size={18} color={c.accent} />
+              </SettingRow>
+              <SettingRow icon="gear" label={t('phoneSettings')} hint={t('phoneSettingsHint')} onPress={() => Linking.openSettings().catch(() => {})}>
+                <Icon name="chevron" size={18} color={c.textSecondary} />
+              </SettingRow>
+            </>
+          ) : null}
           <SettingRow icon="bell" label={t('notifyAdhan')}>
             <Toggle label={t('notifyAdhan')} value={s.notifyAdhan} onChange={(v) => setNotify({ notifyAdhan: v })} />
           </SettingRow>
