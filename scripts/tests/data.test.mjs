@@ -60,6 +60,44 @@ test('التجويد: كل المواضع جوه حدود الآية، والت�
   }
 });
 
+test('التجويد: التلوين عمره ما يفصل حرف عن تشكيله (كل الكلمات في كل الآيات)', () => {
+  // نفس الخوارزمية والقايمة اللي في src/data/quran/extra.ts (tajweedSpans + COMBINING)
+  const COMBINING = /[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ࣓-ࣿ]/;
+  const isMark = (ch) => !!ch && COMBINING.test(ch);
+  const ayahs = read('src/data/quran/ayahs.json');
+  const tj = read('src/data/quran/tajweed.json');
+  const spans = (runs, text, from, to) => {
+    const out = [];
+    let pos = from;
+    for (let i = 0; i < runs.length; i += 3) {
+      let st = Math.max(runs[i], from);
+      let en = Math.min(runs[i] + runs[i + 1], to);
+      while (st > from && isMark(text[st])) st--;
+      while (en < to && isMark(text[en])) en++;
+      st = Math.max(st, pos);
+      if (en <= st) continue;
+      if (st > pos) out.push(text.slice(pos, st));
+      out.push(text.slice(st, en));
+      pos = en;
+    }
+    if (pos < to) out.push(text.slice(pos, to));
+    return out;
+  };
+  let words = 0;
+  for (let id = 1; id <= ayahs.length; id++) {
+    const text = ayahs[id - 1];
+    let start = 0;
+    for (const w of text.split(' ')) {
+      const parts = spans(tj[id - 1] ?? [], text, start, start + w.length);
+      assert.equal(parts.join(''), w, `آية ${id}: التقطيع غيّر الكلمة «${w}»`);
+      for (const part of parts) assert.ok(!isMark(part[0]), `آية ${id}: جزء بيبدأ بتشكيل منفصل في «${w}»`);
+      start += w.length + 1;
+      words++;
+    }
+  }
+  assert.ok(words > 77000);
+});
+
 test('الأذكار: المراجع القرآنية أرقام آيات صحيحة', () => {
   const az = read('src/data/azkar.json');
   assert.ok(az.categories.length > 50);

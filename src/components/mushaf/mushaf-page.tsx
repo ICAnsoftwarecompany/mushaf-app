@@ -174,13 +174,19 @@ function MushafPageView({
   const reflow = zoom > 1.01;
   const zfs = fontSize * zoom;
 
+  /** الكلمة: نص واحد (والتجويد ألوان جوّه) — numberOfLines=1 علشان الكلمة ما تتكسرش أبدًا على سطرين */
   const wordText = (w: Word, size = fontSize, lh = lineH) => {
     const base = { fontFamily: font, fontSize: size, lineHeight: lh, color: c.text, writingDirection: 'rtl' as const };
-    if (!tajweed) return <Text style={base}>{w.text}</Text>;
+    if (!tajweed)
+      return (
+        <Text style={base} numberOfLines={1}>
+          {w.text}
+        </Text>
+      );
     const full = ayahs[w.ayahId - 1];
     const spans = tajweedSpans(w.ayahId, full, w.start, w.start + w.text.length);
     return (
-      <Text style={base}>
+      <Text style={base} numberOfLines={1}>
         {spans.map((s, k) =>
           s.cat < 0 ? (
             s.text
@@ -222,7 +228,25 @@ function MushafPageView({
     );
   };
 
-  /** وضع التكبير: الكلمات المتتالية في كتلة واحدة بتلف، والعناوين والبسملة زي ما هي بخط أكبر */
+  /** محتوى الكلمة (نص عادي أو أجزاء ملوّنة) — من غير غلاف علشان يتحط جوه فقرة */
+  const wordContent = (w: Word) => {
+    if (!tajweed) return w.text;
+    const spans = tajweedSpans(w.ayahId, ayahs[w.ayahId - 1], w.start, w.start + w.text.length);
+    return spans.map((sp, k) =>
+      sp.cat < 0 ? (
+        sp.text
+      ) : (
+        <Text key={k} style={{ color: tajColors[sp.cat] }}>
+          {sp.text}
+        </Text>
+      )
+    );
+  };
+
+  /**
+   * وضع التكبير: كل مجموعة سطور متتالية = **فقرة نص واحدة** (Text واحد والكلمات جواه).
+   * الفقرة الواحدة بتخلّي محرك النص يلف السطور بين الكلمات بس، ومستحيل يكسر كلمة أو يفصل تشكيل عن حرفه.
+   */
   const renderReflow = () => {
     const blocks: React.ReactNode[] = [];
     let run: Word[] = [];
@@ -231,11 +255,20 @@ function MushafPageView({
       const ws = run;
       run = [];
       blocks.push(
-        <View
+        <Text
           key={key}
-          style={{ flexDirection: ARABIC_DIR.row, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', columnGap: zfs * 0.3 }}>
-          {ws.map((w, k) => renderWord(w, k, zfs, zfs * 1.9))}
-        </View>
+          style={{ fontFamily: font, fontSize: zfs, lineHeight: zfs * 2, color: c.text, writingDirection: 'rtl', textAlign: 'center' }}>
+          {ws.map((w, k) => {
+            const hl = selectedAyah === w.ayahId || playingAyah === w.ayahId;
+            return (
+              <Text key={k} onPress={() => onAyahPress?.(w.ayahId)} style={hl ? { backgroundColor: c.highlight } : undefined}>
+                {w.text !== '' ? wordContent(w) : null}
+                {w.end ? <Text style={{ color: c.accent, fontSize: zfs * 0.8 }}>{` \uFD3F${toArabicDigits(ayahNumber(w.ayahId))}\uFD3E`}</Text> : null}
+                {k < ws.length - 1 ? ' ' : ''}
+              </Text>
+            );
+          })}
+        </Text>
       );
     };
     lines.forEach(({ line, words }, i) => {

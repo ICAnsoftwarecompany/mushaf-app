@@ -32,8 +32,8 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme(); // 'light' | 'dark' | null
   const [mode, setModeState] = useState<ThemeMode>(DEFAULT_MODE);
-  // ألوان التجويد مفعّلة افتراضيًا
-  const [tajweedEnabled, setTajweedState] = useState(true);
+  // ألوان التجويد مقفولة افتراضيًا — المستخدم يفعّلها لو حابب
+  const [tajweedEnabled, setTajweedState] = useState(false);
   const [ready, setReady] = useState(false);
 
   // قراءة الاختيارات المحفوظة مرة واحدة عند فتح التطبيق

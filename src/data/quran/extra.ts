@@ -41,13 +41,25 @@ export interface Span {
  * بيقسّم جزء من نص الآية لقطع ملوّنة. القطع لو اتجمعت بترجع نفس النص بالظبط
  * (بنقطّع بس — مفيش أي تعديل في الحروف).
  */
+/**
+ * علامات التشكيل والضبط (حركات، شدة، سكون، مدّ، علامات الوقف الصغيرة…) — لازم تفضل لازقة في الحرف اللي قبلها.
+ * ⚠️ لو التلوين قسم الحرف عن تشكيله، أندرويد بيرسم التشكيل لوحده بعيد عن الحرف (والكلمة بتتكسر).
+ * نفس القايمة في scripts/tests/data.test.mjs.
+ */
+export const COMBINING = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u08D3-\u08FF]/;
+const isMark = (ch: string | undefined) => !!ch && COMBINING.test(ch);
+
 export function tajweedSpans(ayahId: number, text: string, from: number, to: number): Span[] {
   const runs = getTajweed()[ayahId - 1] ?? [];
   const out: Span[] = [];
   let pos = from;
   for (let i = 0; i < runs.length; i += 3) {
-    const s = Math.max(runs[i], from);
-    const e = Math.min(runs[i] + runs[i + 1], to);
+    let s = Math.max(runs[i], from);
+    let e = Math.min(runs[i] + runs[i + 1], to);
+    // حدود اللون على «حرف كامل بتشكيله» بس: البداية ترجع للحرف، والنهاية تاخد التشكيل اللي بعدها
+    while (s > from && isMark(text[s])) s--;
+    while (e < to && isMark(text[e])) e++;
+    s = Math.max(s, pos);
     if (e <= s) continue;
     if (s > pos) out.push({ text: text.slice(pos, s), cat: -1 });
     out.push({ text: text.slice(s, e), cat: runs[i + 2] as TajweedCategory });
