@@ -2,7 +2,7 @@
  * قسم أذكار: كل ذكر بعدّاد. اضغط على الذكر علشان تعد، ولما يخلص بيختفي (لو مفعّل في الإعدادات).
  */
 import { useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Vibration, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
@@ -22,8 +22,12 @@ export async function generateStaticParams(): Promise<Record<string, string>[]> 
 }
 
 export default function AzkarCategoryScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, item } = useLocalSearchParams<{ id: string; item?: string }>();
   const cat = getCategory(Number(id));
+  // جاي من البحث: انزل للذكر ده ونوّره
+  const focus = item !== undefined && item !== '' ? Number(item) : -1;
+  const scrollRef = useRef<ScrollView>(null);
+  const scrolled = useRef(false);
   const { t } = useI18n();
   const { settings } = useSettings();
   const haptic = useHaptic();
@@ -47,11 +51,26 @@ export default function AzkarCategoryScreen() {
 
   return (
     <Screen title={cat.name} back>
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.body}>
         {cat.items.map((z, i) => {
           const done = left[i] <= 0;
           if (done && settings.removeFinishedAzkar) return null;
-          return <ZekrCard key={i} z={z} left={left[i]} done={done} onPress={() => tap(i)} />;
+          return (
+            <View
+              key={i}
+              onLayout={
+                i === focus
+                  ? (e) => {
+                      if (scrolled.current) return;
+                      scrolled.current = true;
+                      const y = e.nativeEvent.layout.y;
+                      setTimeout(() => scrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true }), 50);
+                    }
+                  : undefined
+              }>
+              <ZekrCard z={z} left={left[i]} done={done} focused={i === focus} onPress={() => tap(i)} />
+            </View>
+          );
         })}
         {remaining === 0 && (
           <Card style={{ gap: 12, alignItems: 'center' }}>
@@ -66,14 +85,14 @@ export default function AzkarCategoryScreen() {
   );
 }
 
-function ZekrCard({ z, left, done, onPress }: { z: Zekr; left: number; done: boolean; onPress: () => void }) {
+function ZekrCard({ z, left, done, focused, onPress }: { z: Zekr; left: number; done: boolean; focused?: boolean; onPress: () => void }) {
   const { t, num } = useI18n();
   const { theme } = useMushafTheme();
   const c = theme.colors;
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityHint={t('tapToCount')} disabled={done}>
       {({ pressed }) => (
-        <Card style={{ gap: 10, opacity: done ? 0.45 : pressed ? 0.85 : 1 }}>
+        <Card style={[{ gap: 10, opacity: done ? 0.45 : pressed ? 0.85 : 1 }, focused ? { borderColor: c.accent, borderWidth: 2 } : null]}>
           {z.intro ? (
             <Txt arabic size={14} color="textSecondary">
               {z.intro}

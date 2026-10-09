@@ -197,6 +197,8 @@ export function onNotificationTap(cb: (route: string, id: string) => void): () =
       cb('/settings?focus=adhan', d?.id ?? '');
       return;
     }
+    // زراير تانية (زي زراير السبحة) ليها معالج خاص بيها — متفتحش شاشة
+    if (r.actionIdentifier !== N.DEFAULT_ACTION_IDENTIFIER) return;
     if (d?.route) cb(d.route, d.id ?? '');
   };
   N.getLastNotificationResponseAsync().then(handle).catch(() => {});

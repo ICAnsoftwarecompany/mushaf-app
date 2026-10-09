@@ -1,10 +1,11 @@
 /**
  * الاستماع: القارئ + «بيتقري دلوقتي» + السور / الأجزاء / قوايم الاستماع / المتحمّل.
  * الاستماع محتاج نت، إلا اللي اتحمّل (docs/rules.md القاعدة 2).
+ * زرار البحث بيفلتر القايمة اللي ظاهرة (بحث مرن على الجهاز — src/lib/fuzzy.ts).
  */
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useDeferredValue, useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AddToPlaylist } from '@/components/listen/add-to-playlist';
@@ -13,6 +14,7 @@ import { IconBtn, ListRow } from '@/components/listen/list-row';
 import { NamePrompt } from '@/components/listen/name-prompt';
 import { NowPlaying } from '@/components/listen/now-playing';
 import { HeaderButton, Screen } from '@/components/screen';
+import { SearchBar } from '@/components/search-bar';
 import { Btn, Card, Icon, Row, Segmented, Toggle, Txt } from '@/components/ui';
 import { BottomTabInset } from '@/constants/theme';
 import { getSurah, juzLabel, juzList, surahLabel, surahOfAyah, surahs } from '@/data/quran';
@@ -22,6 +24,7 @@ import { canDownload, totalDownloadedBytes } from '@/features/audio/offline';
 import { playlistName } from '@/features/audio/playlists';
 import { reciterById } from '@/features/audio/reciters';
 import { useI18n } from '@/i18n';
+import { fuzzyFilter, searchable } from '@/lib/fuzzy';
 import { type Playlist, useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
@@ -35,6 +38,9 @@ type Item =
   | { k: 'empty'; title: string; hint: string };
 
 const ALL_SURAHS = surahs.map((s) => s.id);
+// فهرس البحث: الاسم بالعربي والإنجليزي والرقم ومكية/مدنية
+const SURAH_INDEX = surahs.map((s) => searchable(s.name, s.nameEn, s.id, s.type === 'meccan' ? 'مكية meccan' : 'مدنية medinan'));
+const JUZ_INDEX = juzList.map((j) => searchable(juzLabel(j.id, 'ar'), juzLabel(j.id, 'en'), j.id, 'جزء', surahOfAyah(j.ayahId).name));
 
 export default function ListenScreen() {
   const { t, lang, num } = useI18n();
@@ -48,6 +54,9 @@ export default function ListenScreen() {
   const [adding, setAdding] = useState<number | null>(null);
   const [naming, setNaming] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [query, setQuery] = useState('');
+  const q = useDeferredValue(searching ? query.trim() : '');
   const reciter = reciterById(settings.reciter);
   const playingSurah = audio.ayahId != null ? surahOfAyah(audio.ayahId).id : null;
 
@@ -58,17 +67,29 @@ export default function ListenScreen() {
   }, [toast]);
 
   const downloaded = tab === 'downloads' ? dl.downloadedSurahs() : [];
+  const noResults: Item = { k: 'empty', title: t('noResults'), hint: t('searchFlexHint') };
   const items: Item[] = (() => {
-    if (tab === 'surahs') return ALL_SURAHS.map((id) => ({ k: 'surah' as const, id }));
-    if (tab === 'juz') return juzList.map((j) => ({ k: 'juz' as const, id: j.id }));
+    if (tab === 'surahs') {
+      const ids = fuzzyFilter(ALL_SURAHS, q, (id) => SURAH_INDEX[id - 1]);
+      return ids.length ? ids.map((id) => ({ k: 'surah' as const, id })) : [noResults];
+    }
+    if (tab === 'juz') {
+      const ids = fuzzyFilter(juzList.map((j) => j.id), q, (id) => JUZ_INDEX[id - 1]);
+      return ids.length ? ids.map((id) => ({ k: 'juz' as const, id })) : [noResults];
+    }
     if (tab === 'playlists') {
-      const visible = reading.playlists.filter((p) => settings.showSuggestedPlaylists || !p.suggested);
-      const list: Item[] = [{ k: 'newpl' }, ...visible.map((p) => ({ k: 'pl' as const, p }))];
-      if (!visible.length) list.push({ k: 'empty', title: t('noPlaylists'), hint: t('noPlaylistsHint') });
+      const all = reading.playlists.filter((p) => settings.showSuggestedPlaylists || !p.suggested);
+      const visible = fuzzyFilter(all, q, (p) =>
+        searchable(playlistName(p, t), ...p.surahs.map((id) => `${getSurah(id).name} ${getSurah(id).nameEn}`))
+      );
+      const list: Item[] = q ? [] : [{ k: 'newpl' }];
+      list.push(...visible.map((p) => ({ k: 'pl' as const, p })));
+      if (!visible.length) list.push(q ? noResults : { k: 'empty', title: t('noPlaylists'), hint: t('noPlaylistsHint') });
       return list;
     }
     if (!downloaded.length) return [{ k: 'empty' as const, title: t('noDownloads'), hint: t('noDownloadsHint') }];
-    return downloaded.map((id) => ({ k: 'surah' as const, id, del: true }));
+    const ids = fuzzyFilter(downloaded, q, (id) => SURAH_INDEX[id - 1]);
+    return ids.length ? ids.map((id) => ({ k: 'surah' as const, id, del: true })) : [noResults];
   })();
 
   const playSurah = (id: number) => audio.playSurahs(ALL_SURAHS, id - 1, { title: t('fullQuran') });
@@ -100,6 +121,17 @@ export default function ListenScreen() {
       </Pressable>
       <NowPlaying />
       <Segmented value={tab} options={tabs} onChange={setTab} />
+      {searching ? (
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder={t('searchListenPlaceholder')}
+          onClose={() => {
+            setSearching(false);
+            setQuery('');
+          }}
+        />
+      ) : null}
       {dl.failedKey ? (
         <Txt size={12} color="#C0392B">
           {t('downloadFailed')}
@@ -125,13 +157,26 @@ export default function ListenScreen() {
     <Screen
       title={t('tabListen')}
       subtitle={t('listenSubtitle')}
-      actions={<HeaderButton icon="person" label={t('reciter')} onPress={() => router.push('/reciter')} />}>
+      actions={
+        <>
+          <HeaderButton
+            icon={searching ? 'close' : 'search'}
+            label={t('tabSearch')}
+            onPress={() => {
+              setSearching((v) => !v);
+              setQuery('');
+            }}
+          />
+          <HeaderButton icon="person" label={t('reciter')} onPress={() => router.push('/reciter')} />
+        </>
+      }>
       <FlashList
         data={items}
         keyExtractor={(it, i) => (it.k === 'surah' || it.k === 'juz' ? `${it.k}${it.id}` : it.k === 'pl' ? it.p.id : `${it.k}${i}`)}
         getItemType={(it) => it.k}
         ListHeaderComponent={header}
         ListFooterComponent={footer}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 }}
         renderItem={({ item }) => {
           switch (item.k) {

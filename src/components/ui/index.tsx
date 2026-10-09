@@ -361,6 +361,9 @@ const ICONS = {
   pencil: ['pencil', 'edit'],
   playlist: ['music.note.list', 'queue_music'],
   playlistAdd: ['text.badge.plus', 'playlist_add'],
+  swap: ['arrow.triangle.2.circlepath', 'sync'],
+  left: ['chevron.left', 'chevron_left'],
+  right: ['chevron.right', 'chevron_right'],
 } as const;
 
 export type IconName = keyof typeof ICONS;

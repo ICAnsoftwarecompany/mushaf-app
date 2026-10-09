@@ -99,6 +99,14 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
                              ويعيد جدولة الإشعارات (NotificationsSync)
 ```
 
+## السبحة برّه التطبيق — `src/features/tasbih/`
+- `tasbih-store.ts`: الحالة `{ count, phrase, target, pinned }` في `yatlu.tasbih` + قايمة الأذكار.
+- `tasbih-notification.ts`: إشعار ثابت (`sticky`) بمعرّف `tasbih` على قناة `tasbih` (من غير صوت، ظاهر على لوحة القفل) وتصنيف `tasbih` بـ ٣ زراير (`tasbih-inc` / `tasbih-next` / `tasbih-hide`) كلها `opensAppToForeground: false`.
+- الزراير بتتنفذ في **مهمة خلفية** (`TaskManager.defineTask` على مستوى الملف + `Notifications.registerTaskAsync`) لما التطبيق في الخلفية أو مقفول (أندرويد بس)، وبـ `addNotificationResponseReceivedListener` والتطبيق مفتوح؛ الضغطة المكررة بتتجاهل، والضغطات بتتنفذ بالترتيب. بعد كل ضغطة: العدد يتحفظ والإشعار يتحدّث.
+- الملف بيتحمّل من `src/app/_layout.tsx` علشان المهمة تكون متعرّفة بدري، و`startTasbihNotification()` بيرجّع الإشعار لو كان متثبّت.
+- `onNotificationTap` (التنبيهات) بيتجاهل أي زرار غير الضغط العادي، فزراير السبحة مش بتفتح شاشة.
+- `.web.ts`: من غير إشعار.
+
 ## التخزين على الجهاز (AsyncStorage)
 
 | المفتاح | المحتوى | الملف |
@@ -111,6 +119,7 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
 | `yatlu.prayerLog` | `{ "YYYY-MM-DD": { fajr?: ms, … } }` آخر 30 يوم (داخل في النسخة الاحتياطية) | `reading-store.tsx` |
 | `yatlu.activityLog` | أنشطة «أنا مسلم» اللي اتعملت (آخر 14 يوم) | `reading-store.tsx` |
+| `yatlu.tasbih` | `{ count, phrase, target, pinned }` عدّاد السبحة (مشترك مع إشعار السبحة) | `features/tasbih/tasbih-store.ts` |
 | `yatlu.inbox` | `{ items, read, since }` مركز التنبيهات (آخر ١٤ يوم) | `features/notifications/inbox.ts` |
 | `yatlu.suggestedSeeded` | القوايم المقترحة اتضافت | `reading-store.tsx` |
 | `yatlu.playlists` | `{ id, name, surahs[], createdAt }[]` (داخلة في النسخة الاحتياطية) | `reading-store.tsx` |
@@ -132,6 +141,7 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `expo-audio` | التلاوة + التحكم من شاشة القفل |
 | `expo-file-system` | تحميل التلاوات وقراءة الملفات |
 | `expo-notifications` | الإشعارات المحلية |
+| `expo-task-manager` | مهمة الخلفية لزراير إشعار السبحة (أندرويد) |
 | `expo-location` | الموقع والبوصلة |
 | `expo-haptics` | الاهتزاز |
 | `expo-keep-awake` | الشاشة منورة أثناء القراءة |

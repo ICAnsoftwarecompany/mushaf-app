@@ -22,6 +22,8 @@ import { AudioProvider } from '@/features/audio/audio-store';
 import { loadInbox, markRead, refreshInboxClock, syncInbox } from '@/features/notifications/inbox';
 import { planNotifications } from '@/features/notifications/plan';
 import { ensurePermission, onNotificationTap, scheduleOnDevice } from '@/features/notifications/schedule';
+// بيعرّف مهمة زراير إشعار السبحة في الخلفية — لازم يتحمّل بدري
+import { startTasbihNotification } from '@/features/tasbih/tasbih-notification';
 import { ReadingProvider, useReading } from '@/store/reading-store';
 import { SettingsProvider, useSettings } from '@/store/settings-store';
 import { ThemeProvider, useMushafTheme } from '@/theme/ThemeContext';
@@ -44,6 +46,7 @@ function NotificationsSync({ canAsk }: { canAsk: boolean }) {
       if (st === 'active') setActive((n) => n + 1);
     });
     const clock = setInterval(refreshInboxClock, 60000);
+    startTasbihNotification();
     const unTap = onNotificationTap((route, id) => {
       if (id) markRead(id);
       if (route) router.push(route as never);
