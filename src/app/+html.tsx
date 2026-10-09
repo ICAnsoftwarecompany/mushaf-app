@@ -28,8 +28,8 @@ export default function Root({ children }: PropsWithChildren) {
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="يتلو" />
-        <title>يتلو — المصحف الشريف</title>
+        <meta name="apple-mobile-web-app-title" content="يَتْلُو" />
+        <title>يَتْلُو — المصحف الشريف</title>
         <ScrollViewStyleReset />
         <script dangerouslySetInnerHTML={{ __html: registerServiceWorker }} />
       </head>

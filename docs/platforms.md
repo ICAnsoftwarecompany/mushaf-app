@@ -24,7 +24,7 @@
 
 | | القيمة | الملف |
 |---|---|---|
-| اسم التطبيق | يتلو | `app.json` → `expo.name` |
+| اسم التطبيق (تحت الأيقونة) | يَتْلُو | `app.json` → `expo.name` |
 | الـ slug والـ scheme | `yatlu` | `app.json` → `expo.slug` و `expo.scheme` |
 | Android package | `com.icansoftware.yatlu` | `app.json` → `expo.android.package` |
 | iOS bundle ID | `com.icansoftware.yatlu` | `app.json` → `expo.ios.bundleIdentifier` |
