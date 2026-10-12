@@ -150,6 +150,11 @@ export default function ListenScreen() {
           {t('storageUsed', { size: formatBytes(totalDownloadedBytes(), num) })}
         </Txt>
       ) : null}
+      {tab === 'downloads' && Platform.OS === 'android' ? (
+        <Txt size={12} color="textSecondary">
+          {t('keepDataHint')}
+        </Txt>
+      ) : null}
     </View>
   );
 

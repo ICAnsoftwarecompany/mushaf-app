@@ -60,7 +60,8 @@
         {
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      "./plugins/with-keep-data"
     ],
     "experiments": {
       "typedRoutes": true,

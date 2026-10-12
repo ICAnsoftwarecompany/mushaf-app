@@ -5,6 +5,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── AGENTS.md / CLAUDE.md        تعليمات لأدوات الذكاء الاصطناعي (بتشاور على docs/)
 ├── app.json                     إعدادات Expo (الاسم، المعرّف، الأيقونات، الأذونات، الإضافات)
 ├── eas.json                     بروفايلات بناء أندرويد و iOS
+├── plugins/with-keep-data.js     إضافة Expo محلية: «الاحتفاظ بالبيانات» وقت المسح + قواعد النسخ الاحتياطي (أندرويد)
 ├── app.config.js                بيقرا app.json ويضيف صوت الأذان لو assets/sounds/adhan.wav موجود
 ├── metro.config.js              ملفات .ytd (بيانات كبيرة) بتتعامل كـ assets
 ├── eslint.config.js             إعدادات الـ lint
