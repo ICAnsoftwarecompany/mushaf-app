@@ -1,7 +1,7 @@
 {
   "name": "yatlu",
   "main": "expo-router/entry",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "dependencies": {
     "@expo-google-fonts/scheherazade-new": "^0.4.3",
     "@expo/ui": "~57.0.21",
