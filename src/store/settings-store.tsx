@@ -68,6 +68,8 @@ export interface Settings {
   notifyAdhan: boolean;
   notifyPrayers: Record<Exclude<PrayerKey, 'sunrise'>, boolean>;
   adhanSound: boolean;
+  /** أندرويد: الأذان على صوت المنبه — بيشتغل حتى والموبايل صامت أو هزاز */
+  adhanInSilent: boolean;
   preReminder: number; // دقايق قبل الصلاة (0 = لأ)
   notifyAzkar: boolean;
   morningAzkarTime: string; // "HH:MM"
@@ -131,6 +133,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyAdhan: true,
   notifyPrayers: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
   adhanSound: true,
+  adhanInSilent: false,
   preReminder: 10,
   notifyAzkar: true,
   morningAzkarTime: '06:30',

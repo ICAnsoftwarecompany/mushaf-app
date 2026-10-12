@@ -76,6 +76,7 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   ├── audio/               audio-store (المشغّل + طابور السور + البسملة)، reciters، offline (ملفات الجهاز)،
     │   │                        downloads (طابور التحميل المشترك + useDownloads)
     │   ├── notifications/       plan.ts (خطة كل التنبيهات) ← inbox.ts (مركز التنبيهات) + schedule.ts (إشعارات الموبايل، الويب فاضي)
+    │   │                        + phone-settings.ts (شاشات إعدادات أندرويد ونوع الموبايل)
     │   ├── muslim/              day-plan (خطة اليوم)، use-day-plan
     │   ├── tasbih/              حالة السبحة + إشعار السبحة برّه التطبيق
     │   ├── app/version.ts       رقم الإصدار والبناء والكوميت (الإعدادات و«عن التطبيق»)
@@ -147,6 +148,8 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `expo-file-system` | تحميل التلاوات وقراءة الملفات |
 | `expo-notifications` | الإشعارات المحلية |
 | `expo-task-manager` | مهمة الخلفية لزراير إشعار السبحة (أندرويد) |
+| `expo-intent-launcher` | فتح شاشات إعدادات أندرويد (المنبهات، البطارية، الإشعارات) من «الأذان مش بيوصل؟» |
+| `expo-device` | شركة الموبايل علشان نصيحة البطارية المناسبة |
 | `expo-location` | الموقع والبوصلة |
 | `expo-haptics` | الاهتزاز |
 | `expo-keep-awake` | الشاشة منورة أثناء القراءة |

@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
-import { Icon, Row, Section, Segmented, SettingRow, Stepper, Toggle, Txt } from '@/components/ui';
+import { Btn, Icon, Row, Section, Segmented, SettingRow, Stepper, Toggle, Txt } from '@/components/ui';
 import { BottomTabInset, QuranFont, QuranFontBold } from '@/constants/theme';
 import { ayahs } from '@/data/quran';
 import { tajweedSpans } from '@/data/quran/extra';
@@ -307,6 +307,7 @@ export default function SettingsScreen() {
               <Txt size={13} lineHeight={1.7}>
                 {t('adhanHelpBody')}
               </Txt>
+              {Platform.OS === 'android' ? <Btn title={t('nhTitle')} kind="secondary" icon="info" onPress={() => router.push('/notif-help')} /> : null}
             </View>
           ) : null}
         <Section
@@ -324,9 +325,15 @@ export default function SettingsScreen() {
                 }}>
                 <Icon name="play" size={18} color={c.accent} />
               </SettingRow>
-              <SettingRow icon="gear" label={t('phoneSettings')} hint={t('phoneSettingsHint')} onPress={() => Linking.openSettings().catch(() => {})}>
-                <Icon name="chevron" size={18} color={c.textSecondary} />
-              </SettingRow>
+              {Platform.OS === 'android' ? (
+                <SettingRow icon="info" label={t('nhRow')} hint={t('nhRowHint')} onPress={() => router.push('/notif-help')}>
+                  <Icon name="chevron" size={18} color={c.textSecondary} />
+                </SettingRow>
+              ) : (
+                <SettingRow icon="gear" label={t('phoneSettings')} hint={t('phoneSettingsHint')} onPress={() => Linking.openSettings().catch(() => {})}>
+                  <Icon name="chevron" size={18} color={c.textSecondary} />
+                </SettingRow>
+              )}
             </>
           ) : null}
           <SettingRow icon="bell" label={t('notifyAdhan')}>
@@ -357,6 +364,11 @@ export default function SettingsScreen() {
             hint={adhanSoundAvailable ? t('adhanSoundHint') : t('adhanSoundMissing')}>
             <Toggle label={t('adhanSound')} value={s.adhanSound} onChange={(v) => update({ adhanSound: v })} />
           </SettingRow>
+          {Platform.OS === 'android' && notificationsSupported && s.adhanSound ? (
+            <SettingRow icon="vibrate" label={t('adhanInSilent')} hint={t('adhanInSilentHint')}>
+              <Toggle label={t('adhanInSilent')} value={s.adhanInSilent} onChange={(v) => update({ adhanInSilent: v })} />
+            </SettingRow>
+          ) : null}
           <SettingRow icon="clock" label={t('preReminder')}>
             <Stepper
               value={s.preReminder}

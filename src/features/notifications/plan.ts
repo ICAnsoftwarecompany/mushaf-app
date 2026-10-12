@@ -30,7 +30,7 @@ export interface PlannedNotif {
 
 const SALAH: Salah[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 const DAY = 86400000;
-/** كام يوم قدام بنخطط */
+/** كام يوم قدام بنخطط (الافتراضي — أندرويد بيبعت أكتر من schedule.ts → PLAN_DAYS) */
 const HORIZON_DAYS = 7;
 
 const azkarId = (name: string) => featuredCategories.find((c) => c.name === name)?.id;
@@ -42,7 +42,7 @@ function at(date: Date, hhmm: string) {
 
 export function planNotifications(
   s: Settings,
-  ctx: { log: PrayerLog; khatma: Khatma; lastRead: LastRead | null },
+  ctx: { log: PrayerLog; khatma: Khatma; lastRead: LastRead | null; horizonDays?: number },
   now = Date.now()
 ): PlannedNotif[] {
   const out: PlannedNotif[] = [];
@@ -52,8 +52,9 @@ export function planNotifications(
   const morningId = azkarId('أذكار الصباح');
   const eveningId = azkarId('أذكار المساء');
 
-  // من امبارح (علشان تنبيهات الليل اللي فاتت) لحد HORIZON_DAYS قدام
-  for (let d = -1; d < HORIZON_DAYS; d++) {
+  // من امبارح (علشان تنبيهات الليل اللي فاتت) لحد horizon يوم قدام
+  const horizon = ctx.horizonDays ?? HORIZON_DAYS;
+  for (let d = -1; d < horizon; d++) {
     const date = new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
     const day = todayKey(date);
 

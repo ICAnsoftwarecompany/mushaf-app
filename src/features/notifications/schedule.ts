@@ -1,7 +1,9 @@
 /**
  * إشعارات الموبايل المحلية (من غير سيرفر) — بتتعمل من خطة التنبيهات (plan.ts).
  * بيتعاد جدولتها كل ما الإعدادات أو الفروض أو القراءة تتغير، أو التطبيق يتفتح.
- * iOS بيسمح بـ 64 إشعار مجدول بس، فبنجدول أقرب 60.
+ * iOS بيسمح بـ 64 إشعار مجدول بس، فبنجدول 60 (الأذان الأول لأسبوع، وبعده أقرب التذكيرات).
+ * أندرويد: لحد 400 إشعار و ١٤ يوم قدام — علشان التنبيهات ما تقفش لو التطبيق ما اتفتحش كام يوم
+ * (كان ٦٠ بس = حوالي ٣ أيام مع كل التذكيرات مفعّلة).
  *
  * صوت الأذان: app.config.js بيضيف assets/sounds/adhan.mp3 (أندرويد، كامل) و adhan_short.wav (iOS، أقل من ٣٠ ث)
  * وبيعلّم extra.adhanSound، وقناة «الأذان» بتستخدمه حتى والتطبيق مقفول.
@@ -31,9 +33,13 @@ const ADHAN_CATEGORY = 'adhan';
 // قنوات أندرويد (صوت القناة مينفعش يتغير بعد إنشائها، فلكل صوت قناة)
 const CH_ADHAN = adhanSoundAvailable ? 'adhan-full-v2' : 'adhan';
 const CH_ADHAN_SILENT = 'adhan-silent';
+/** الأذان على صوت «المنبه»: بيشتغل حتى والموبايل صامت/هزاز (إعداد «الأذان حتى والموبايل صامت») */
+const CH_ADHAN_ALARM = 'adhan-alarm-v1';
 const CH_PRAYER = 'prayer-alerts';
 const CH_REMINDERS = 'reminders';
-const MAX_SCHEDULED = 60;
+const MAX_SCHEDULED = Platform.OS === 'ios' ? 60 : 400;
+/** كام يوم قدام بنخطط التنبيهات (plan.ts) */
+export const PLAN_DAYS = Platform.OS === 'ios' ? 7 : 14;
 
 let mod: typeof NotificationsModule | null = null;
 function load(): typeof NotificationsModule | null {
@@ -63,6 +69,15 @@ async function configure(N: typeof NotificationsModule) {
       sound: adhanSoundAvailable ? ADHAN_FILE : 'default',
       vibrationPattern: [0, 300, 200, 300],
       lockscreenVisibility: N.AndroidNotificationVisibility.PUBLIC,
+    });
+    await N.setNotificationChannelAsync(CH_ADHAN_ALARM, {
+      name: 'الأذان حتى والموبايل صامت — Adhan (alarm volume)',
+      importance: N.AndroidImportance.MAX,
+      sound: adhanSoundAvailable ? ADHAN_FILE : 'default',
+      vibrationPattern: [0, 300, 200, 300],
+      lockscreenVisibility: N.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: true,
+      audioAttributes: { usage: N.AndroidAudioUsage.ALARM, contentType: N.AndroidAudioContentType.SONIFICATION },
     });
     await N.setNotificationChannelAsync(CH_ADHAN_SILENT, {
       name: 'الأذان بدون صوت — Adhan (silent)',
@@ -125,11 +140,18 @@ export async function scheduleOnDevice(plan: PlannedNotif[], s: Settings): Promi
   if (!perm.granted) return;
 
   const now = Date.now() + 5000;
-  const upcoming = plan.filter((p) => p.at > now).slice(0, MAX_SCHEDULED);
+  let upcoming = plan.filter((p) => p.at > now).sort((a, b) => a.at - b.at);
+  if (upcoming.length > MAX_SCHEDULED) {
+    // الأذان الأول (أهم حاجة)، والباقي بأقرب التذكيرات
+    const adhan = upcoming.filter((p) => p.kind === 'adhan').slice(0, MAX_SCHEDULED);
+    const rest = upcoming.filter((p) => p.kind !== 'adhan').slice(0, MAX_SCHEDULED - adhan.length);
+    upcoming = [...adhan, ...rest].sort((a, b) => a.at - b.at);
+  }
+  const adhanChannel = s.adhanSound ? (s.adhanInSilent && Platform.OS === 'android' ? CH_ADHAN_ALARM : CH_ADHAN) : CH_ADHAN_SILENT;
   await Promise.allSettled(
     upcoming.map((p) => {
       const adhan = p.kind === 'adhan';
-      const channel = adhan ? (s.adhanSound ? CH_ADHAN : CH_ADHAN_SILENT) : p.kind === 'pre' || p.kind === 'missed' ? CH_PRAYER : CH_REMINDERS;
+      const channel = adhan ? adhanChannel : p.kind === 'pre' || p.kind === 'missed' ? CH_PRAYER : CH_REMINDERS;
       const sound = adhan ? (s.adhanSound ? (adhanSoundAvailable ? ADHAN_FILE : 'default') : undefined) : 'default';
       return N.scheduleNotificationAsync({
         identifier: p.id,
@@ -173,7 +195,9 @@ export async function testAdhan(s: Settings): Promise<boolean> {
     trigger: {
       type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
       seconds: 10,
-      ...(Platform.OS === 'android' ? { channelId: s.adhanSound ? CH_ADHAN : CH_ADHAN_SILENT } : {}),
+      ...(Platform.OS === 'android'
+        ? { channelId: s.adhanSound ? (s.adhanInSilent ? CH_ADHAN_ALARM : CH_ADHAN) : CH_ADHAN_SILENT }
+        : {}),
     } as NotificationsModule.NotificationTriggerInput,
   });
   return true;

@@ -18,3 +18,4 @@ export async function muteAdhan(_id?: string): Promise<void> {}
 export function onNotificationTap(_cb: (route: string, id: string) => void): () => void {
   return () => {};
 }
+export const PLAN_DAYS = 7;

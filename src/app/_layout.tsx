@@ -21,7 +21,7 @@ import { IntroScreen } from '@/components/brand/intro-screen';
 import { AudioProvider } from '@/features/audio/audio-store';
 import { loadInbox, markRead, refreshInboxClock, syncInbox } from '@/features/notifications/inbox';
 import { planNotifications } from '@/features/notifications/plan';
-import { ensurePermission, onNotificationTap, scheduleOnDevice } from '@/features/notifications/schedule';
+import { ensurePermission, onNotificationTap, PLAN_DAYS, scheduleOnDevice } from '@/features/notifications/schedule';
 // بيعرّف مهمة زراير إشعار السبحة في الخلفية — لازم يتحمّل بدري
 import { startTasbihNotification } from '@/features/tasbih/tasbih-notification';
 import { ReadingProvider, useReading } from '@/store/reading-store';
@@ -75,7 +75,7 @@ function NotificationsSync({ canAsk }: { canAsk: boolean }) {
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => {
-      const plan = planNotifications(settings, { log: prayerLog, khatma, lastRead });
+      const plan = planNotifications(settings, { log: prayerLog, khatma, lastRead, horizonDays: PLAN_DAYS });
       loadInbox().then(() => syncInbox(plan));
       scheduleOnDevice(plan, settings).catch(() => {});
     }, 800);
