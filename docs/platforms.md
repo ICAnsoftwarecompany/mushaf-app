@@ -92,14 +92,30 @@ npx eas-cli@latest init        # بيربط المشروع بحسابك (بيض�
 ### أندرويد
 
 ```bash
-npx eas-cli@latest build --platform android --profile preview      # APK للتجربة
-npx eas-cli@latest build --platform android --profile production   # AAB للمتجر
+npm run build:apk     # = eas build --profile preview      → APK للتجربة
+npm run build:aab     # = eas build --profile production   → AAB لجوجل بلاي
 npx eas-cli@latest submit --platform android                       # رفع على Google Play
 ```
 
 بعد ما البناء يخلص، EAS بيديك لينك تنزّل منه الـ APK على أي موبايل أندرويد.
 
 **للنشر:** محتاج حساب **Google Play Console** (رسوم مرة واحدة)، وأول رفع لازم يتعمل يدوي من الموقع.
+
+### الإصدارات
+
+| الرقم | شكله | بيتغير إمتى | فين |
+|---|---|---|---|
+| **الإصدار** (versionName / CFBundleShortVersionString) | `1.1.0` | **لوحده مع كل رفع على `main`** (patch +١) — GitHub Action `.github/workflows/version.yml` بيعمل كوميت «الإصدار 1.1.1» وتاج `v1.1.1` | `app.json` → `expo.version` (+ `package.json`) |
+| **البناء** (versionCode / buildNumber) | `12` | **لوحده مع كل APK أو AAB** — EAS (`appVersionSource: remote` + `autoIncrement` في البروفايلين) | سيرفر EAS |
+| **الكوميت** | `605221b` | مع كل كوميت | `app.config.js` → `extra.commit` |
+
+- **في التطبيق:** الإعدادات ← «عن التطبيق» بيعرض «الإصدار ١.١.٠ · بناء ١٢» وتحتها الكوميت، و«عن التطبيق» كمان. (على الويب مفيش رقم بناء.)
+- **ميزة كبيرة:** `npm run version:minor` (1.1.4 → 1.2.0) أو `version:major` قبل الرفع — الـ Action بيلاقي الرقم اتغيّر فمش بيزوّده تاني.
+- **رفع من غير زيادة:** اكتب `[skip version]` في رسالة الكوميت.
+- **بعد كل رفع** الـ Action بيضيف كوميت على `main`، فاعمل `git pull` قبل ما تشتغل أو تبني.
+- **صلاحية GitHub:** الـ Action محتاج كتابة (`permissions: contents: write` في الملف). لو ما اشتغلش: إعدادات الريبو ← Actions ← General ← Workflow permissions ← **Read and write**.
+- اختبار في `npm test` بيتأكد إن الرقم متطابق في `app.json` و `package.json` و `package-lock.json`.
+- جوجل بلاي بيرفض أي AAB رقم بنائه أقل من أو يساوي اللي قبله — EAS بيزوّده لوحده فمفيش مشكلة.
 
 ### iOS
 

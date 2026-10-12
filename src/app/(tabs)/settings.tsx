@@ -13,6 +13,7 @@ import { ayahs } from '@/data/quran';
 import { tajweedSpans } from '@/data/quran/extra';
 import { reciterById } from '@/features/audio/reciters';
 import { exportBackup, makeBackup, pickBackup } from '@/features/backup';
+import { getAppVersion, versionLabel } from '@/features/app/version';
 import { adhanSoundAvailable, ensurePermission, isExpoGoAndroid, notificationsSupported, testAdhan } from '@/features/notifications/schedule';
 import { locationLabel, resolveMethod, SALAH } from '@/features/prayer/prayer';
 import { ARABIC_DIR, useI18n } from '@/i18n';
@@ -34,6 +35,7 @@ export default function SettingsScreen() {
     if (focus === 'adhan' && notifY != null) scrollRef.current?.scrollTo({ y: notifY, animated: true });
   }, [focus, notifY]);
   const { t, lang, num } = useI18n();
+  const appVersion = getAppVersion();
   const { settings: s, update, reset, replaceAll } = useSettings();
   const { theme, mode, setMode, tajweedEnabled, setTajweedEnabled } = useMushafTheme();
   const reading = useReading();
@@ -466,9 +468,10 @@ export default function SettingsScreen() {
 
         {/* ───── عن التطبيق ───── */}
         <Section title={t('secAbout')}>
-          <SettingRow icon="info" label={t('secAbout')} onPress={() => router.push('/about')} last>
+          <SettingRow icon="info" label={t('secAbout')} onPress={() => router.push('/about')}>
             <Chevron />
           </SettingRow>
+          <SettingRow icon="sparkles" label={versionLabel(appVersion, t, num)} hint={appVersion.commit ? `${t('versionHint')} · ${appVersion.commit}` : t('versionHint')} last />
         </Section>
       </ScrollView>
     </Screen>

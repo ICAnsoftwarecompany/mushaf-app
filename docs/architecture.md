@@ -6,7 +6,8 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── app.json                     إعدادات Expo (الاسم، المعرّف، الأيقونات، الأذونات، الإضافات)
 ├── eas.json                     بروفايلات بناء أندرويد و iOS
 ├── plugins/with-keep-data.js     إضافة Expo محلية: «الاحتفاظ بالبيانات» وقت المسح + قواعد النسخ الاحتياطي (أندرويد)
-├── app.config.js                بيقرا app.json ويضيف صوت الأذان لو assets/sounds/adhan.wav موجود
+├── app.config.js                بيقرا app.json ويضيف صوت الأذان لو ملفاته موجودة + extra.commit (الكوميت)
+├── .github/workflows/version.yml  بيزوّد رقم الإصدار (patch) لوحده مع كل رفع على main
 ├── metro.config.js              ملفات .ytd (بيانات كبيرة) بتتعامل كـ assets
 ├── eslint.config.js             إعدادات الـ lint
 ├── workbox-config.cjs           الـ service worker لنسخة الويب
@@ -15,7 +16,8 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
 ├── scripts/
 │   ├── build-quran-data.mjs     بيبني بيانات المصحف من المصادر ويتحقق منها
 │   ├── build-extra-data.mjs     الأذكار، المدن، التجويد، التفسير، الترجمة
-│   ├── tests/data.test.mjs      اختبارات سلامة البيانات (npm test)
+│   ├── bump-version.mjs         رقم الإصدار: patch/minor/major (app.json + package.json + lock)
+│   ├── tests/                   npm test: سلامة البيانات، البحث المرن، تطابق رقم الإصدار
 │   └── brand/                   توليد لوجو الاسم كـ SVG
 ├── assets/
 │   ├── brand/                   ملفات اللوجو الأصلية (SVG)
@@ -75,6 +77,8 @@ mushaf-app/  (اسم المستودع — التطبيق اسمه «يتلو»)
     │   │                        downloads (طابور التحميل المشترك + useDownloads)
     │   ├── notifications/       plan.ts (خطة كل التنبيهات) ← inbox.ts (مركز التنبيهات) + schedule.ts (إشعارات الموبايل، الويب فاضي)
     │   ├── muslim/              day-plan (خطة اليوم)، use-day-plan
+    │   ├── tasbih/              حالة السبحة + إشعار السبحة برّه التطبيق
+    │   ├── app/version.ts       رقم الإصدار والبناء والكوميت (الإعدادات و«عن التطبيق»)
     │   └── backup*.ts           النسخ الاحتياطي (موبايل / ويب)
     ├── i18n/
     │   ├── strings.ts           كل نصوص الواجهة بالعربي والإنجليزي

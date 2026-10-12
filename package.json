@@ -1,7 +1,7 @@
 {
   "name": "yatlu",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "dependencies": {
     "@expo-google-fonts/scheherazade-new": "^0.4.3",
     "@expo/ui": "~57.0.21",
@@ -66,6 +66,10 @@
     "build:extra-data": "node scripts/build-extra-data.mjs",
     "test": "node --test scripts/tests/*.test.mjs",
     "build:apk": "npx eas-cli@latest build --platform android --profile preview",
+    "build:aab": "npx eas-cli@latest build --platform android --profile production",
+    "version:patch": "node scripts/bump-version.mjs patch",
+    "version:minor": "node scripts/bump-version.mjs minor",
+    "version:major": "node scripts/bump-version.mjs major",
     "docs:docx": "pandoc docs/REFERENCE.md -o docs/yatlu-reference.docx --toc -M lang=ar -M dir=rtl && python3 scripts/docx-rtl.py docs/yatlu-reference.docx"
   },
   "private": true

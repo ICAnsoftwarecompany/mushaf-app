@@ -1,6 +1,4 @@
 /** عن التطبيق: الإصدار، الخصوصية، التقييم، المشاركة، التواصل، ومصادر البيانات (ذكر المصدر مطلوب في التراخيص) */
-import * as Application from 'expo-application';
-import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, Linking, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
@@ -8,6 +6,7 @@ import { Image, Linking, Platform, ScrollView, Share, StyleSheet, View } from 'r
 import { Screen } from '@/components/screen';
 import { Section, SettingRow, Txt } from '@/components/ui';
 import { Brand, LINKS } from '@/constants/brand';
+import { getAppVersion, versionLabel } from '@/features/app/version';
 import { useI18n } from '@/i18n';
 
 const SOURCES = [
@@ -27,7 +26,7 @@ const SOURCES = [
 
 export default function AboutScreen() {
   const { t, num } = useI18n();
-  const version = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.0.0';
+  const v = getAppVersion();
 
   const rate = () => {
     if (Platform.OS === 'android') Linking.openURL(`market://details?id=${LINKS.androidPackage}`).catch(() => {});
@@ -40,7 +39,7 @@ export default function AboutScreen() {
       <ScrollView contentContainerStyle={styles.body}>
         <View style={[styles.hero, { backgroundColor: Brand.colors.green }]}>
           <Image source={require('@/assets/images/splash-icon.png')} style={{ width: 120, height: 120 }} resizeMode="contain" accessibilityLabel={Brand.name} />
-          <Txt size={13} color={Brand.colors.gold} align="center">{`${t('version')} ${num(version)}`}</Txt>
+          <Txt size={13} color={Brand.colors.gold} align="center">{versionLabel(v, t, num)}</Txt>
         </View>
 
         <Section>

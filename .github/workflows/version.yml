@@ -1,0 +1,55 @@
+# رقم الإصدار بيزيد لوحده مع كل رفع على main (patch: 1.1.0 → 1.1.1) — docs/platforms.md «الإصدارات».
+# لو الرفع نفسه غيّر رقم الإصدار (زي npm run version:minor) الخطوة دي بتتخطى.
+# لو الكوميت فيه [skip version] مش هيزيد.
+name: رقم الإصدار
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip version]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: الإصدار اتغيّر في الرفع ده؟
+        id: check
+        run: |
+          before="${{ github.event.before }}"
+          new=$(node -p "require('./app.json').expo.version")
+          if git cat-file -e "$before:app.json" 2>/dev/null; then
+            old=$(git show "$before:app.json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).expo.version))")
+          else
+            old=""
+          fi
+          echo "old=$old new=$new"
+          if [ -n "$old" ] && [ "$old" = "$new" ]; then echo "bump=yes" >> "$GITHUB_OUTPUT"; else echo "bump=no" >> "$GITHUB_OUTPUT"; fi
+
+      - name: زوّد رقم الإصدار
+        if: steps.check.outputs.bump == 'yes'
+        run: |
+          v=$(node scripts/bump-version.mjs patch)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "الإصدار $v [skip ci]"
+          git tag "v$v"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && git push origin "v$v" && exit 0
+            sleep 5
+          done
+          exit 1
