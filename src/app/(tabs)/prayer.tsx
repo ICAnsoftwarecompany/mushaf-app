@@ -7,6 +7,8 @@ import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { AlarmPermissionCard } from '@/components/notifications/alarm-permission-card';
+
 import { AfterPrayerPrompt, PrayedCheck, WeekLog } from '@/components/prayer/prayer-tracker';
 import { Screen } from '@/components/screen';
 import { Btn, Card, Icon, type IconName, Row, Txt } from '@/components/ui';
@@ -68,6 +70,7 @@ export default function PrayerScreen() {
   return (
     <Screen title={t('prayerTimes')} subtitle={`${hijriDate(now, lang)} · ${gregorianDate(now, lang)}`}>
       <ScrollView contentContainerStyle={styles.body}>
+        <AlarmPermissionCard />
         {!settings.location || !times ? (
           <Card style={{ gap: 10 }}>
             <Txt size={18} weight="bold">

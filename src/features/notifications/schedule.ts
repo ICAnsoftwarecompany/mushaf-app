@@ -108,6 +108,14 @@ export async function ensurePermission(): Promise<boolean> {
   return res.granted;
 }
 
+/** إذن الإشعارات متاح؟ (من غير ما نطلبه) — null لو مش مدعوم */
+export async function notificationPermissionGranted(): Promise<boolean | null> {
+  const N = load();
+  if (!N) return null;
+  const cur = await N.getPermissionsAsync().catch(() => null);
+  return cur ? cur.granted : null;
+}
+
 /** زرارين إشعار الأذان — بيتسجّلوا كل مرة علشان أسماءهم تتبع لغة التطبيق */
 async function registerAdhanActions(N: typeof NotificationsModule, lang: Settings['language']) {
   const ar = lang === 'ar';

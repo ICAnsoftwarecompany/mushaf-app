@@ -2,12 +2,14 @@
  * «الأذان مش بيوصل؟» — خطوات علشان الأذان والتنبيهات توصل والتطبيق مقفول (أندرويد).
  * كل خطوة بزرار بيفتح شاشة الإعدادات الصح، ونصيحة مخصوصة لشركة الموبايل، وفي الآخر «جرّب الأذان».
  */
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { AppState, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
 import { Btn, Card, Row, Txt } from '@/components/ui';
 import {
+  batteryUnrestricted,
+  exactAlarmAllowed,
   exactAlarmSupported,
   openAppDetails,
   openBatterySettings,
@@ -16,7 +18,7 @@ import {
   phoneBrand,
   phoneName,
 } from '@/features/notifications/phone-settings';
-import { testAdhan } from '@/features/notifications/schedule';
+import { notificationPermissionGranted, testAdhan } from '@/features/notifications/schedule';
 import { useI18n } from '@/i18n';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
@@ -29,13 +31,47 @@ export default function NotifHelpScreen() {
   const [testMsg, setTestMsg] = useState<string | null>(null);
   const brand = phoneBrand();
   const name = phoneName();
+  // حالة كل إعداد (بتتحدث لما المستخدم يرجع من الإعدادات)
+  const [status, setStatus] = useState<{ notif: boolean | null; alarm: boolean | null; battery: boolean | null }>({
+    notif: null,
+    alarm: null,
+    battery: null,
+  });
+  useEffect(() => {
+    const check = () =>
+      notificationPermissionGranted().then((notif) => setStatus({ notif, alarm: exactAlarmAllowed(), battery: batteryUnrestricted() }));
+    check();
+    const sub = AppState.addEventListener('change', (st) => st === 'active' && check());
+    return () => sub.remove();
+  }, []);
+  const label = (v: boolean | null, off = t('nhNotAllowed')) => (v === null ? undefined : v ? t('nhAllowed') : off);
 
-  const steps: { title: string; body: string; action?: { label: string; onPress: () => void } }[] = [
-    { title: t('nhNotifTitle'), body: t('nhNotifBody'), action: { label: t('nhOpen'), onPress: openNotificationSettings } },
+  const steps: { title: string; body: string; status?: string; ok?: boolean | null; action?: { label: string; onPress: () => void } }[] = [
+    {
+      title: t('nhNotifTitle'),
+      body: t('nhNotifBody'),
+      status: label(status.notif),
+      ok: status.notif,
+      action: { label: t('nhOpen'), onPress: openNotificationSettings },
+    },
     ...(exactAlarmSupported
-      ? [{ title: t('nhAlarmTitle'), body: t('nhAlarmBody'), action: { label: t('nhOpen'), onPress: openExactAlarmSettings } }]
+      ? [
+          {
+            title: t('nhAlarmTitle'),
+            body: t('nhAlarmBody'),
+            status: label(status.alarm),
+            ok: status.alarm,
+            action: { label: t('nhOpen'), onPress: openExactAlarmSettings },
+          },
+        ]
       : []),
-    { title: t('nhBatteryTitle'), body: t('nhBatteryBody'), action: { label: t('nhOpen'), onPress: openBatterySettings } },
+    {
+      title: t('nhBatteryTitle'),
+      body: t('nhBatteryBody'),
+      status: label(status.battery, t('nhBatteryOptimized')),
+      ok: status.battery,
+      action: { label: t('nhOpen'), onPress: openBatterySettings },
+    },
     {
       title: name ? t('nhBrandTitleNamed', { name }) : t('nhBrandTitle'),
       body: t(`nhBrand_${brand}`),
@@ -62,6 +98,11 @@ export default function NotifHelpScreen() {
                 {st.title}
               </Txt>
             </Row>
+            {st.status ? (
+              <Txt size={13} weight="bold" color={st.ok ? c.accent : '#C0392B'}>
+                {st.status}
+              </Txt>
+            ) : null}
             <Txt size={13} lineHeight={1.7}>
               {st.body}
             </Txt>

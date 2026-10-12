@@ -7,3 +7,5 @@ export const openAppDetails = async () => {};
 export type PhoneBrand = 'xiaomi' | 'samsung' | 'oppo' | 'vivo' | 'huawei' | 'other';
 export const phoneBrand = (): PhoneBrand => 'other';
 export const phoneName = () => '';
+export const exactAlarmAllowed = (): boolean | null => null;
+export const batteryUnrestricted = (): boolean | null => null;

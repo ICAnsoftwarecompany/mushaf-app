@@ -1,0 +1,7 @@
+{
+  "name": "yatlu-alarms",
+  "version": "1.0.0",
+  "description": "يتلو: هل الموبايل سامح بالمنبهات الدقيقة وتجاهل تحسين البطارية (أندرويد)",
+  "private": true,
+  "license": "MIT"
+}

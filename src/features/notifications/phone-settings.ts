@@ -9,6 +9,8 @@ import { Linking, Platform } from 'react-native';
 
 import { LINKS } from '@/constants/brand';
 
+import { canScheduleExactAlarms, isIgnoringBatteryOptimizations } from '../../../modules/yatlu-alarms';
+
 const PKG = LINKS.androidPackage;
 
 async function open(action: string, params?: IntentLauncher.IntentLauncherParams): Promise<void> {
@@ -46,3 +48,7 @@ export function phoneBrand(): PhoneBrand {
 }
 
 export const phoneName = () => [Device.manufacturer, Device.modelName].filter(Boolean).join(' ');
+
+/** حالة الإعدادات (null = مش معروف: Expo Go أو موبايل قديم من غير الموديول) */
+export const exactAlarmAllowed = (): boolean | null => (Platform.OS === 'android' ? canScheduleExactAlarms() : null);
+export const batteryUnrestricted = (): boolean | null => (Platform.OS === 'android' ? isIgnoringBatteryOptimizations() : null);

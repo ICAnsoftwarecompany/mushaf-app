@@ -19,3 +19,6 @@ export function onNotificationTap(_cb: (route: string, id: string) => void): () 
   return () => {};
 }
 export const PLAN_DAYS = 7;
+export async function notificationPermissionGranted(): Promise<boolean | null> {
+  return null;
+}
