@@ -49,6 +49,8 @@ export interface Settings {
   pageZoom: number;
   mushafBold: boolean;
   showMargins: boolean;
+  /** الوضع الأفقي: صفحتين جنب بعض (false = الصفحة بتملى العرض وتتسحب لتحت) */
+  landscapeSpread: boolean;
   showTranslation: boolean; // ترجمة المعاني تحت الآية في وضع النص المتصل
   reciter: string;
   repeatAyah: number; // عدد مرات تكرار الآية في التلاوة (1 = من غير تكرار)
@@ -113,6 +115,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pageZoom: 1,
   mushafBold: false,
   showMargins: true,
+  landscapeSpread: false,
   showTranslation: true,
   reciter: 'Alafasy_128kbps',
   repeatAyah: 1,

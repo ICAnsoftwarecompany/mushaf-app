@@ -12,7 +12,7 @@ import * as Clipboard from 'expo-clipboard';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { type LayoutChangeEvent, Platform, Pressable, Share, StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, Platform, Pressable, ScrollView, Share, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AudioBar } from '@/components/mushaf/audio-bar';
@@ -77,7 +77,15 @@ export default function MushafScreen() {
   const [translation, setTranslation] = useState<string[] | null>(null);
 
   const textMode = settings.mushafMode === 'text';
-  const spread = !!area && area.width > area.height * 1.15; // صفحتين جنب بعض
+  const win = useWindowDimensions();
+  /** الموبايل بالعرض: الهيدر وشريط الآية بيصغروا علشان القراية تاخد أكبر مساحة */
+  const compact = win.width > win.height && win.height < 600;
+  // الموبايل بالعرض (ارتفاع صغير): الصفحة بتملى العرض كله وبتتسحب لتحت — إلا لو المستخدم اختار صفحتين جنب بعض.
+  // التابلت والكمبيوتر بالعرض: صفحتين جنب بعض زي الأول.
+  const shortArea = !!area && area.height < 600;
+  const wide = !!area && area.width > area.height * 1.15;
+  const spread = wide && (!shortArea || settings.landscapeSpread);
+  const fillWidth = wide && shortArea && !spread;
 
   useEffect(() => {
     setLastPage(page);
@@ -140,7 +148,10 @@ export default function MushafScreen() {
     },
     [settings.mushafScale, update, haptic]
   );
-  const fontRange: [number, number] = [scaleFactor(1) / scaleFactor(settings.mushafScale), scaleFactor(10) / scaleFactor(settings.mushafScale)];
+  const fontRange: [number, number] = [
+    scaleFactor(1) / scaleFactor(settings.mushafScale),
+    scaleFactor(10) / scaleFactor(settings.mushafScale),
+  ];
 
   // وضع الصفحات: تكبير الخط من ١٠٠٪ لـ ٢٥٠٪ بخطوات ١٠٪
   const onPagePinchEnd = useCallback(
@@ -158,7 +169,15 @@ export default function MushafScreen() {
   // ───── الصفحات: عنصر = صفحة أو صفحتين ─────
   const count = spread ? Math.ceil(TOTAL_PAGES / 2) : TOTAL_PAGES;
   const index = spread ? Math.ceil(page / 2) : page;
-  const pageW = area ? (spread ? Math.min(area.width / 2, area.height * PAGE_ASPECT) : Math.min(area.width, area.height * PAGE_ASPECT)) : 0;
+  const pageW = area
+    ? spread
+      ? Math.min(area.width / 2, area.height * PAGE_ASPECT)
+      : fillWidth
+        ? area.width
+        : Math.min(area.width, area.height * PAGE_ASPECT)
+    : 0;
+  // الموبايل بالعرض: الصفحة بطول سطورها وبتتسحب لتحت (مع التكبير الصفحة بتتسحب من جوّه فبتاخد طول الشاشة)
+  const fitWidth = fillWidth && settings.pageZoom <= 1.01;
 
   const renderPageView = (p: number) => (
     <MushafPage
@@ -166,6 +185,7 @@ export default function MushafScreen() {
       page={p}
       width={pageW}
       height={area!.height}
+      fitWidth={fitWidth}
       selectedAyah={selectedAyah}
       playingAyah={audio.ayahId}
       tajweed={tajweedEnabled}
@@ -179,6 +199,16 @@ export default function MushafScreen() {
 
   const renderItem = (i: number) => {
     if (!area) return null;
+    if (fitWidth)
+      return (
+        <ScrollView
+          style={{ width: area.width, flex: 1 }}
+          contentContainerStyle={{ alignItems: 'center' }}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator>
+          {renderPageView(i)}
+        </ScrollView>
+      );
     if (!spread) return renderPageView(i);
     const right = i * 2 - 1; // الصفحة الفردية على اليمين
     const left = i * 2;
@@ -249,16 +279,26 @@ export default function MushafScreen() {
     : [];
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: c.background }]} edges={['top', 'bottom']}>
-        <Row style={[styles.topBar, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Pressable
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('back')}
-            style={{ transform: [{ scaleX: dir.rtl ? -1 : 1 }] }}>
-            <Icon name="back" size={22} color={c.accent} />
-          </Pressable>
+    <SafeAreaView style={[styles.screen, { backgroundColor: c.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      <Row style={[styles.topBar, compact && styles.topBarCompact, { backgroundColor: c.surface, borderColor: c.border }]}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={t('back')}
+          style={{ transform: [{ scaleX: dir.rtl ? -1 : 1 }] }}>
+          <Icon name="back" size={22} color={c.accent} />
+        </Pressable>
+        {compact ? (
+          <View style={styles.titleBox}>
+            <Txt size={14} align="center" numberOfLines={1}>
+              <Txt size={14} weight="bold">
+                {surahLabel(surah, lang)}
+              </Txt>
+              {`  ·  ${juzLabel(juzOfPage(page), lang)} · ${t('hizbN', { n: num(quarterOfPage(page).hizb) })} · ${t('pageN', { n: num(page) })}`}
+            </Txt>
+          </View>
+        ) : (
           <View style={styles.titleBox}>
             <Txt size={16} weight="bold" align="center">
               {surahLabel(surah, lang)}
@@ -267,49 +307,56 @@ export default function MushafScreen() {
               {`${juzLabel(juzOfPage(page), lang)} · ${t('hizbN', { n: num(quarterOfPage(page).hizb) })} · ${t('pageN', { n: num(page) })}`}
             </Txt>
           </View>
-          <Row style={{ gap: 14 }}>
-            <Pressable
-              onPress={() => update({ mushafMode: textMode ? 'pages' : 'text' })}
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel={textMode ? t('readingModePages') : t('readingModeText')}>
-              <Icon name={textMode ? 'book' : 'list'} size={22} color={c.accent} />
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                togglePageBookmark(page);
-                haptic('success');
-                setNotice(bookmarked ? t('pageRemoved') : t('pageSaved'));
-              }}
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel={t('bookmark')}>
-              <Icon name={bookmarked ? 'bookmark' : 'bookmarkOutline'} size={22} color={c.accent} />
-            </Pressable>
-          </Row>
+        )}
+        <Row style={{ gap: 14 }}>
+          <Pressable
+            onPress={() => update({ mushafMode: textMode ? 'pages' : 'text' })}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={textMode ? t('readingModePages') : t('readingModeText')}>
+            <Icon name={textMode ? 'book' : 'list'} size={22} color={c.accent} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              togglePageBookmark(page);
+              haptic('success');
+              setNotice(bookmarked ? t('pageRemoved') : t('pageSaved'));
+            }}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('bookmark')}>
+            <Icon name={bookmarked ? 'bookmark' : 'bookmarkOutline'} size={22} color={c.accent} />
+          </Pressable>
         </Row>
+      </Row>
       <View style={styles.area} onLayout={onLayout}>
         {area &&
           (textMode ? (
             <PinchZoom previewRange={fontRange} onPinchEnd={onFontPinchEnd}>
-            <View style={{ flex: 1, alignSelf: 'stretch' }}>
-            <TextReader
-              startAyah={selectedAyah ?? firstAyahOfPage(page)}
-              selectedAyah={selectedAyah}
-              playingAyah={audio.ayahId}
-              translation={showTranslation ? translation : null}
-              tajweed={tajweedEnabled}
-              onAyahPress={onAyahPress}
-              onVisibleAyah={(id) => {
-                const p = pageOfAyah(id);
-                if (p !== page) setPage(p);
-              }}
-            />
-            </View>
+              <View style={{ flex: 1, alignSelf: 'stretch' }}>
+                <TextReader
+                  startAyah={selectedAyah ?? firstAyahOfPage(page)}
+                  selectedAyah={selectedAyah}
+                  playingAyah={audio.ayahId}
+                  translation={showTranslation ? translation : null}
+                  tajweed={tajweedEnabled}
+                  onAyahPress={onAyahPress}
+                  onVisibleAyah={(id) => {
+                    const p = pageOfAyah(id);
+                    if (p !== page) setPage(p);
+                  }}
+                />
+              </View>
             </PinchZoom>
           ) : (
             <PinchZoom previewRange={pageRange} onPinchEnd={onPagePinchEnd}>
-              <PagePager key={spread ? 'spread' : 'single'} count={count} index={index} onIndexChange={onIndexChange} renderItem={renderItem} />
+              <PagePager
+                key={spread ? 'spread' : 'single'}
+                count={count}
+                index={index}
+                onIndexChange={onIndexChange}
+                renderItem={renderItem}
+              />
             </PinchZoom>
           ))}
         {settings.pageZoom > 1 && !textMode && (
@@ -329,25 +376,55 @@ export default function MushafScreen() {
       </View>
 
       {selectedAyah !== null && (
-        <View style={[styles.ayahBar, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <Txt size={15} weight="bold">
-              {`${surahLabel(surahOfAyah(selectedAyah), lang)} · ${t('ayahN', { n: ayahNumber(selectedAyah) })}`}
-            </Txt>
-            <Pressable onPress={() => setSelectedAyah(null)} hitSlop={10} accessibilityLabel={t('close')}>
-              <Icon name="close" size={20} color={c.textSecondary} />
-            </Pressable>
-          </Row>
-          <Row style={{ justifyContent: 'space-around' }}>
-            {actions.map((a) => (
-              <Pressable key={a.label} onPress={a.onPress} accessibilityRole="button" accessibilityLabel={a.label} style={styles.action}>
-                <Icon name={a.icon} size={22} color={c.accent} />
-                <Txt size={12} color="accent" align="center">
-                  {a.label}
-                </Txt>
+        <View style={[styles.ayahBar, compact && styles.ayahBarCompact, { backgroundColor: c.surface, borderColor: c.border }]}>
+          {compact ? (
+            <Row style={{ gap: 12 }}>
+              <Txt size={14} weight="bold" numberOfLines={1} style={{ flexShrink: 1 }}>
+                {`${surahLabel(surahOfAyah(selectedAyah), lang)} · ${t('ayahN', { n: ayahNumber(selectedAyah) })}`}
+              </Txt>
+              <Row style={{ flex: 1, justifyContent: 'space-around' }}>
+                {actions.map((a) => (
+                  <Pressable key={a.label} onPress={a.onPress} accessibilityRole="button" accessibilityLabel={a.label} hitSlop={6}>
+                    <Row style={{ gap: 4 }}>
+                      <Icon name={a.icon} size={20} color={c.accent} />
+                      <Txt size={12} color="accent">
+                        {a.label}
+                      </Txt>
+                    </Row>
+                  </Pressable>
+                ))}
+              </Row>
+              <Pressable onPress={() => setSelectedAyah(null)} hitSlop={10} accessibilityLabel={t('close')}>
+                <Icon name="close" size={20} color={c.textSecondary} />
               </Pressable>
-            ))}
-          </Row>
+            </Row>
+          ) : (
+            <>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Txt size={15} weight="bold">
+                  {`${surahLabel(surahOfAyah(selectedAyah), lang)} · ${t('ayahN', { n: ayahNumber(selectedAyah) })}`}
+                </Txt>
+                <Pressable onPress={() => setSelectedAyah(null)} hitSlop={10} accessibilityLabel={t('close')}>
+                  <Icon name="close" size={20} color={c.textSecondary} />
+                </Pressable>
+              </Row>
+              <Row style={{ justifyContent: 'space-around' }}>
+                {actions.map((a) => (
+                  <Pressable
+                    key={a.label}
+                    onPress={a.onPress}
+                    accessibilityRole="button"
+                    accessibilityLabel={a.label}
+                    style={styles.action}>
+                    <Icon name={a.icon} size={22} color={c.accent} />
+                    <Txt size={12} color="accent" align="center">
+                      {a.label}
+                    </Txt>
+                  </Pressable>
+                ))}
+              </Row>
+            </>
+          )}
         </View>
       )}
 
@@ -376,8 +453,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  topBarCompact: { paddingVertical: 6 },
+  ayahBarCompact: { paddingVertical: 8 },
   titleBox: { flex: 1, alignItems: 'center' },
-  zoomChip: { position: 'absolute', top: 10, alignSelf: 'center', borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+  zoomChip: {
+    position: 'absolute',
+    top: 10,
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
   ayahBar: { paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
   action: { alignItems: 'center', gap: 2, minWidth: 54 },
   notice: { position: 'absolute', bottom: 120, alignSelf: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },

@@ -3,7 +3,7 @@
  */
 import { router } from 'expo-router';
 import React from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MINI_PLAYER_SPACE, useMiniPlayerVisible } from '@/components/audio/mini-player';
@@ -29,12 +29,15 @@ export function Screen({ title, titleNode, subtitle, back, actions, children }: 
   const { t, dir } = useI18n();
   const c = theme.colors;
   const mini = useMiniPlayerVisible();
+  const win = useWindowDimensions();
+  // الموبايل بالعرض: المحتوى بياخد عرض الشاشة كله (الحد الأقصى للعرض للتابلت والكمبيوتر بس)
+  const phoneLandscape = Platform.OS !== 'web' && win.width > win.height && win.height < 600;
 
   return (
     <SafeAreaView
       style={[styles.safe, { backgroundColor: c.background }]}
-      edges={Platform.OS === 'web' ? [] : back ? ['top', 'bottom'] : ['top']}>
-      <View style={styles.inner}>
+      edges={Platform.OS === 'web' ? [] : back ? ['top', 'bottom', 'left', 'right'] : ['top', 'left', 'right']}>
+      <View style={[styles.inner, phoneLandscape && { maxWidth: undefined }]}>
         <Row style={styles.header}>
           {back && (
             <Pressable

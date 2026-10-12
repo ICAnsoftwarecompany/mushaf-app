@@ -221,6 +221,9 @@ export default function SettingsScreen() {
           <SettingRow icon="eye" label={t('showMargins')}>
             <Toggle label={t('showMargins')} value={s.showMargins} onChange={(v) => update({ showMargins: v })} />
           </SettingRow>
+          <SettingRow icon="book" label={t('landscapeSpread')} hint={t('landscapeSpreadHint')}>
+            <Toggle label={t('landscapeSpread')} value={s.landscapeSpread} onChange={(v) => update({ landscapeSpread: v })} />
+          </SettingRow>
           <SettingRow icon="translate" label={t('showTranslation')} last>
             <Toggle label={t('showTranslation')} value={s.showTranslation} onChange={(v) => update({ showTranslation: v })} />
           </SettingRow>

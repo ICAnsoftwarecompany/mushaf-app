@@ -48,6 +48,8 @@ interface Props {
   showMargins?: boolean;
   /** تكبير الخط (1 = ترتيب السطور زي المصحف) */
   zoom?: number;
+  /** الموبايل بالعرض: الخط على قد عرض الصفحة، والصفحة بتطول على قد سطورها (height بيتجاهل) */
+  fitWidth?: boolean;
   onAyahPress?: (ayahId: number) => void;
   onBackgroundPress?: () => void;
 }
@@ -98,6 +100,7 @@ function MushafPageView({
   bold,
   showMargins = true,
   zoom = 1,
+  fitWidth = false,
   onAyahPress,
   onBackgroundPress,
 }: Props) {
@@ -157,9 +160,16 @@ function MushafPageView({
   const headerH = showMargins ? 28 : 8;
   const footerH = showMargins ? 28 : 8;
   const textW = width - padX * 2;
-  const textH = height - headerH - footerH - 8;
   const maxW = widths ? Math.max(...widths, 1) : 1;
   const fitFont = (MEASURE_FONT * textW * 0.98) / maxW;
+  // fitWidth: الطول على قد السطور بالخط اللي مالي العرض (مسافة سطر طبيعية ×٢)
+  const autoH = fitWidth && zoom <= 1.01;
+  const textH = autoH
+    ? isOpening
+      ? fitFont * (page === 1 ? 0.8 : 0.95) * LINE_HEIGHT_FACTOR * 8.5
+      : fitFont * 2 * LINES_PER_PAGE
+    : height - headerH - footerH - 8;
+  const pageHeight = autoH ? textH + headerH + footerH + 8 : height;
   // أول صفحتين (الفاتحة وأول البقرة): السطور أقل، فبنكبّر الخط شوية ونقرّب السطور من بعض في النص
   const openingMax = textH / 8.5;
   const fontSize = isOpening
@@ -300,7 +310,7 @@ function MushafPageView({
     <Pressable
       onPress={onBackgroundPress}
       accessibilityLabel={`صفحة ${page}`}
-      style={[styles.page, { width, height, backgroundColor: c.background, paddingHorizontal: padX }]}>
+      style={[styles.page, { width, height: pageHeight, backgroundColor: c.background, paddingHorizontal: padX }]}>
       <View style={[styles.margin, { height: headerH, flexDirection: ARABIC_DIR.row }]}>
         {showMargins && (
           <>
