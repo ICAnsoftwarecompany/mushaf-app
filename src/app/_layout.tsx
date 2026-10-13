@@ -19,6 +19,7 @@ import { AlertCard } from '@/components/notifications/alert-card';
 import { PrayerPill } from '@/components/notifications/prayer-pill';
 import { IntroScreen } from '@/components/brand/intro-screen';
 import { AudioProvider } from '@/features/audio/audio-store';
+import { resumeDownloads } from '@/features/audio/downloads';
 import { loadInbox, markRead, refreshInboxClock, syncInbox } from '@/features/notifications/inbox';
 import { planNotifications } from '@/features/notifications/plan';
 import { ensurePermission, onNotificationTap, PLAN_DAYS, scheduleOnDevice } from '@/features/notifications/schedule';
@@ -43,8 +44,12 @@ function NotificationsSync({ canAsk }: { canAsk: boolean }) {
   useEffect(() => {
     loadInbox();
     const sub = AppState.addEventListener('change', (st) => {
-      if (st === 'active') setActive((n) => n + 1);
+      if (st === 'active') {
+        setActive((n) => n + 1);
+        resumeDownloads(); // تحميل ما خلصش → يكمّل من مكانه
+      }
     });
+    resumeDownloads();
     const clock = setInterval(refreshInboxClock, 60000);
     startTasbihNotification();
     const unTap = onNotificationTap((route, id) => {

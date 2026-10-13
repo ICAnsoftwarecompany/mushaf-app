@@ -1,7 +1,16 @@
 /**
  * مدير التحميل: طابور تحميلات (سورة أو جزء) بيكمّل حتى لو المستخدم اتنقل بين الشاشات،
  * وكل الشاشات بتشوف نفس التقدّم (شريط التلاوة في القارئ + تاب الاستماع).
+ *
+ * علشان السور الكبيرة (البقرة = ٢٨٧ ملف) تتحمّل كاملة:
+ * - كل ملف بيتجرّب ٣ مرات، والملف اللي فشل ما بيوقفش الباقي، وفي الآخر لفّة تانية للي فشل.
+ * - لو النت قطع خالص (٦ ملفات فشلت ورا بعض) بيقف ويكمّل بعدين.
+ * - الشاشة بتفضل منورة أثناء التحميل (علشان الموبايل ما يوقفش التطبيق).
+ * - الطابور متخزن (yatlu.downloadQueue): أي تحميل ما خلصش بيكمّل لوحده لما التطبيق يتفتح أو يرجع
+ *   (resumeDownloads من _layout.tsx) — ومن غير ما يحمّل اللي اتحمّل قبل كده تاني.
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useSyncExternalStore } from 'react';
 
 import { getSurah, juzList, surahOfAyah, ayahNumber, TOTAL_AYAHS } from '@/data/quran';
@@ -63,10 +72,35 @@ function emit() {
 
 export const jobKey = (reciter: string, kind: 's' | 'j', n: number) => `${reciter}:${kind}${n}`;
 
+const QUEUE_KEY = 'yatlu.downloadQueue';
+const CONCURRENCY = 4;
+const MAX_CONSECUTIVE_FAILS = 6;
+
+/** الطابور اللي لسه ما خلصش (بالمفتاح بس — الملفات بتتحسب من المفتاح) */
+let pending: string[] = [];
+function savePending() {
+  AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(pending)).catch(() => {});
+}
+
+/** "Alafasy_128kbps:s2" → ملفات سورة ٢ */
+function filesForKey(key: string): { reciter: string; files: AyahRef[] } | null {
+  const m = key.match(/^(.+):([sj])(\d+)$/);
+  if (!m) return null;
+  const n = Number(m[3]);
+  if (m[2] === 's' && n >= 1 && n <= 114) return { reciter: m[1], files: surahFiles(n) };
+  if (m[2] === 'j' && n >= 1 && n <= 30) return { reciter: m[1], files: juzFiles(n) };
+  return null;
+}
+
 export function startDownload(key: string, reciter: string, files: AyahRef[]) {
   if (!canDownload || jobs.some((j) => j.key === key)) return;
   cancelled.delete(key);
+  if (lastFailed === key) lastFailed = null;
   jobs = [...jobs, { key, reciter, files, done: 0, failed: false }];
+  if (!pending.includes(key)) {
+    pending = [...pending, key];
+    savePending();
+  }
   emit();
   void run();
 }
@@ -74,39 +108,103 @@ export function startDownload(key: string, reciter: string, files: AyahRef[]) {
 export function cancelDownload(key: string) {
   cancelled.add(key);
   jobs = jobs.filter((j) => j.key !== key);
+  pending = pending.filter((k) => k !== key);
+  savePending();
   version++;
   emit();
 }
 
+let resumedOnce = false;
+/** كمّل أي تحميل ما خلصش (التطبيق اتقفل أو النت قطع) — بيتنادى لما التطبيق يفتح أو يرجع */
+export async function resumeDownloads(): Promise<void> {
+  if (!canDownload) return;
+  if (!resumedOnce) {
+    resumedOnce = true;
+    try {
+      const saved = JSON.parse((await AsyncStorage.getItem(QUEUE_KEY)) ?? '[]');
+      if (Array.isArray(saved)) pending = Array.from(new Set([...pending, ...saved.filter((k) => typeof k === 'string')]));
+    } catch {}
+  }
+  for (const key of pending) {
+    const spec = filesForKey(key);
+    if (!spec) continue;
+    if (!jobs.some((j) => j.key === key)) jobs = [...jobs, { key, reciter: spec.reciter, files: spec.files, done: 0, failed: false }];
+  }
+  emit();
+  void run();
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** ملف واحد بـ ٣ محاولات */
+async function fetchFile(reciter: string, s: number, a: number): Promise<boolean> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (await downloadAyahFile(reciter, s, a)) return true;
+    await sleep(700 * (attempt + 1));
+  }
+  return false;
+}
+
 async function run() {
-  if (running) return;
+  if (running || !jobs.length) return;
   running = true;
+  activateKeepAwakeAsync('downloads').catch(() => {});
   try {
     while (jobs.length) {
       const job = jobs[0];
       const have = downloadedNames(job.reciter);
-      const todo = job.files.filter(([s, a]) => !have.has(ayahFileName(s, a)));
+      let todo = job.files.filter(([s, a]) => !have.has(ayahFileName(s, a)));
       let done = job.files.length - todo.length;
-      let failed = false;
-      // 3 ملفات في نفس الوقت
-      for (let i = 0; i < todo.length && !cancelled.has(job.key); i += 3) {
-        const batch = todo.slice(i, i + 3);
-        const res = await Promise.all(batch.map(([s, a]) => downloadAyahFile(job.reciter, s, a)));
-        if (res.some((ok) => !ok)) {
-          failed = true;
-          break;
+      let offline = false;
+      jobs = jobs.map((j) => (j.key === job.key ? { ...j, done } : j));
+      emit();
+      // لفّتين: الأولى لكل الملفات، والتانية للي فشل
+      for (let pass = 0; pass < 2 && todo.length && !offline && !cancelled.has(job.key); pass++) {
+        const failedFiles: AyahRef[] = [];
+        let streak = 0;
+        for (let i = 0; i < todo.length && !cancelled.has(job.key); i += CONCURRENCY) {
+          const batch = todo.slice(i, i + CONCURRENCY);
+          const res = await Promise.all(batch.map(([s, a]) => fetchFile(job.reciter, s, a)));
+          res.forEach((ok, k) => {
+            if (ok) {
+              done++;
+              streak = 0;
+            } else {
+              failedFiles.push(batch[k]);
+              streak++;
+            }
+          });
+          jobs = jobs.map((j) => (j.key === job.key ? { ...j, done } : j));
+          emit();
+          if (streak >= MAX_CONSECUTIVE_FAILS) {
+            offline = true; // النت قطع غالبًا — نكمّل بعدين
+            break;
+          }
         }
-        done += batch.length;
-        jobs = jobs.map((j) => (j.key === job.key ? { ...j, done } : j));
-        emit();
+        todo = failedFiles;
       }
+      const nowHave = downloadedNames(job.reciter);
+      const complete = !cancelled.has(job.key) && job.files.every(([s, a]) => nowHave.has(ayahFileName(s, a)));
       jobs = jobs.filter((j) => j.key !== job.key);
-      if (failed && !cancelled.has(job.key)) lastFailed = job.key;
+      if (complete) {
+        pending = pending.filter((k) => k !== job.key);
+        savePending();
+        if (lastFailed === job.key) lastFailed = null;
+      } else if (!cancelled.has(job.key)) {
+        lastFailed = job.key; // بيفضل في الطابور المتخزن ويكمّل لوحده بعدين
+      }
       version++;
       emit();
+      if (offline) {
+        // ما نجربش باقي الطابور والنت قاطع — كله متخزن في pending ويكمّل لما التطبيق يرجع
+        jobs = [];
+        emit();
+        break;
+      }
     }
   } finally {
     running = false;
+    deactivateKeepAwake('downloads').catch(() => {});
   }
 }
 

@@ -126,6 +126,7 @@ GestureHandlerRootView   مطلوب للتكبير بإصبعين
 | `yatlu.khatma` | `{ nextPage, startedAt, lastDoneDay, completed }` | `reading-store.tsx` |
 | `yatlu.prayerLog` | `{ "YYYY-MM-DD": { fajr?: ms, … } }` آخر 30 يوم (داخل في النسخة الاحتياطية) | `reading-store.tsx` |
 | `yatlu.activityLog` | أنشطة «أنا مسلم» اللي اتعملت (آخر 14 يوم) | `reading-store.tsx` |
+| `yatlu.downloadQueue` | مفاتيح التحميلات اللي لسه ما خلصتش (`Alafasy_128kbps:s2`) — بتكمّل لوحدها | `features/audio/downloads.ts` |
 | `yatlu.tasbih` | `{ count, phrase, target, pinned }` عدّاد السبحة (مشترك مع إشعار السبحة) | `features/tasbih/tasbih-store.ts` |
 | `yatlu.inbox` | `{ items, read, since }` مركز التنبيهات (آخر ١٤ يوم) | `features/notifications/inbox.ts` |
 | `yatlu.suggestedSeeded` | القوايم المقترحة اتضافت | `reading-store.tsx` |

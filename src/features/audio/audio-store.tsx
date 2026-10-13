@@ -81,12 +81,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }, [settings]);
   /** بيتنادى لما الملف يخلص — ref علشان المستمع بيتسجل مرة واحدة */
   const finishedRef = useRef<() => void>(() => {});
+  /** لو الآية ما اتحمّلتش في ٢٠ ثانية (مش متحمّلة ومفيش نت) → نوقف ونعرض رسالة بدل ما نفضل مستنيين */
+  const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearLoadTimer = () => {
+    if (loadTimer.current) clearTimeout(loadTimer.current);
+    loadTimer.current = null;
+  };
 
   const getPlayer = useCallback(() => {
     if (!player.current) {
       setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => {});
       const p = createAudioPlayer(null, { updateInterval: 500 });
       p.addListener('playbackStatusUpdate', (st) => {
+        if (st.isLoaded) clearLoadTimer();
         if (st.didJustFinish) finishedRef.current();
         else setState((s) => ({ ...s, playing: st.playing, loading: !st.isLoaded && s.ayahId !== null }));
       });
@@ -101,6 +108,14 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       const reciter = reciterOverride.current ?? settingsRef.current.reciter;
       const uri = localAyahUri(reciter, surah, ayah) ?? ayahUrl(reciter, surah, ayah);
       setState((st) => ({ ...st, ayahId: shownAyahId, playing: true, loading: true, error: false, reciter }));
+      clearLoadTimer();
+      loadTimer.current = setTimeout(() => {
+        loadTimer.current = null;
+        if (!player.current?.isLoaded) {
+          player.current?.pause();
+          setState((st) => ({ ...st, playing: false, loading: false, error: true }));
+        }
+      }, 20000);
       try {
         p.replace({ uri });
         p.play();
@@ -138,6 +153,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   );
 
   const finishAll = useCallback(() => {
+    clearLoadTimer();
     current.current = null;
     basmalaFor.current = null;
     queue.current = null;

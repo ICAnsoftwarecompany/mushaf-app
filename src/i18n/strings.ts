@@ -169,7 +169,7 @@ const ar = {
   surahsCountN: '{n} سورة',
   ayahOfN: 'آية {n} من {m}',
   fullQuran: 'المصحف كامل',
-  downloadFailed: 'التحميل وقف — اتأكد من النت وجرّب تاني.',
+  downloadFailed: 'التحميل ما خلصش (غالبًا النت قطع) — هيكمّل لوحده من مكانه لما النت يرجع وتفتح التطبيق، أو دوس التحميل تاني.',
   tabSettings: 'الإعدادات',
 
   // عام
@@ -621,7 +621,7 @@ const en: typeof ar = {
   surahsCountN: '{n} surahs',
   ayahOfN: 'Ayah {n} of {m}',
   fullQuran: 'Whole Quran',
-  downloadFailed: 'Download stopped — check your internet and try again.',
+  downloadFailed: 'Download didn’t finish (probably the connection) — it resumes by itself from where it stopped when you’re back online and open the app, or tap download again.',
   tabSettings: 'Settings',
 
   back: 'Back',

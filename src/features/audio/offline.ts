@@ -38,6 +38,11 @@ export async function downloadAyahFile(reciter: string, surah: number, ayah: num
   try {
     if (tmp.exists) tmp.delete();
     await File.downloadFileAsync(ayahUrl(reciter, surah, ayah), tmp);
+    // ملف فاضي أو صفحة خطأ بدل الصوت → نعتبره فشل (علشان ما يتحسبش متحمّل وهو بايظ)
+    if ((tmp.size ?? 0) < 1024) {
+      tmp.delete();
+      return false;
+    }
     tmp.move(f);
     return true;
   } catch {
