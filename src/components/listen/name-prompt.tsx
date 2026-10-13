@@ -5,6 +5,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput
 import { Btn, Row, Txt } from '@/components/ui';
 import { useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 
 export function NamePrompt({
   visible,
@@ -56,7 +57,7 @@ function Body({
         <Txt size={18} weight="bold">
           {title}
         </Txt>
-        <TextInput
+        <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE}
           value={name}
           onChangeText={setName}
           autoFocus

@@ -162,7 +162,7 @@ export default function TasbihScreen() {
             styles.circle,
             { borderColor: c.accent, backgroundColor: pressed ? c.highlight : c.surface, transform: [{ scale: pressed ? 0.97 : 1 }] },
           ]}>
-          <Txt size={countSize(String(s.count).length)} weight="bold" align="center" numberOfLines={1} adjustsFontSizeToFit style={{ maxWidth: 210 }}>
+          <Txt fixed size={countSize(String(s.count).length)} weight="bold" align="center" numberOfLines={1} adjustsFontSizeToFit style={{ maxWidth: 210 }}>
             {grouped(s.count)}
           </Txt>
           {s.target > 0 ? (

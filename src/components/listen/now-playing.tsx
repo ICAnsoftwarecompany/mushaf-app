@@ -31,7 +31,7 @@ export function NowPlaying() {
           <Icon name="headphones" size={22} color={c.accent} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Txt size={12} color="accent" weight="bold">
+          <Txt fixed size={12} color="accent" weight="bold">
             {audio.queueTitle ? `${t('nowPlaying')} · ${audio.queueTitle}` : t('nowPlaying')}
           </Txt>
           <Txt size={18} weight="bold" numberOfLines={1}>

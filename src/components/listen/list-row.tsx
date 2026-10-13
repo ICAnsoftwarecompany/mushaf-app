@@ -34,7 +34,7 @@ export function ListRow({
             ) : active ? (
               <Icon name="speaker" size={16} color={c.accent} />
             ) : (
-              <Txt size={13} color="textSecondary" align="center">
+              <Txt fixed size={13} color="textSecondary" align="center">
                 {number}
               </Txt>
             )}

@@ -119,7 +119,7 @@ function ZekrCard({ z, left, done, focused, onPress }: { z: Zekr; left: number; 
               {z.ref ?? ''}
             </Txt>
             <View style={[styles.counter, { backgroundColor: done ? c.border : c.accent }]}>
-              <Txt size={15} weight="bold" color={c.background} align="center">
+              <Txt fixed size={15} weight="bold" color={c.background} align="center">
                 {done ? '✓' : num(left)}
               </Txt>
             </View>

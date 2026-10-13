@@ -12,6 +12,7 @@ import { ayahNumber, ayahs, pageOfAyah, surahLabel, surahOfAyah } from '@/data/q
 import { searchQuran } from '@/data/quran/search';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 
 export default function SearchScreen() {
   const { theme } = useMushafTheme();
@@ -24,7 +25,7 @@ export default function SearchScreen() {
   return (
     <Screen title={t('tabSearch')} subtitle={t('searchSubtitle')} back>
       <View style={styles.inputWrap}>
-        <TextInput
+        <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE}
           value={query}
           onChangeText={setQuery}
           placeholder={t('searchPlaceholder')}

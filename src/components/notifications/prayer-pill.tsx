@@ -65,11 +65,11 @@ export function PrayerPill() {
       style={[styles.pill, side, { top: height * 0.6, backgroundColor: missed ? '#C0392B' : c.accent }]}>
       <Row style={{ gap: 4, justifyContent: 'center' }}>
         <Icon name={missed ? 'bell' : 'clock'} size={11} color={missed ? '#FFFFFF' : c.background} />
-        <Txt size={11} weight="bold" color={missed ? '#FFFFFF' : c.background} numberOfLines={1}>
+        <Txt fixed size={11} weight="bold" color={missed ? '#FFFFFF' : c.background} numberOfLines={1}>
           {line1}
         </Txt>
       </Row>
-      <Txt size={11} color={missed ? '#FFFFFF' : c.background} align="center" numberOfLines={1}>
+      <Txt fixed size={11} color={missed ? '#FFFFFF' : c.background} align="center" numberOfLines={1}>
         {line2}
       </Txt>
     </Pressable>

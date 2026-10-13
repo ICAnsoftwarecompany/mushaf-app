@@ -22,6 +22,7 @@ import {
 import { QuranFont, QuranFontBold } from '@/constants/theme';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { scaleFactor, useSettings } from '@/store/settings-store';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
 type ColorKey = 'text' | 'textSecondary' | 'accent' | 'background' | 'surface' | 'border';
@@ -36,11 +37,13 @@ export interface TxtProps extends TextProps {
   /** نص عربي (أذكار…): اتجاه عربي مهما كانت لغة الواجهة */
   arabic?: boolean;
   lineHeight?: number;
+  /** نص جوه صندوق مقاسه ثابت (دايرة رقم، شارة…): ما يكبرش مع حجم خط الموبايل */
+  fixed?: boolean;
 }
 
 const COLOR_KEYS: readonly string[] = ['text', 'textSecondary', 'accent', 'background', 'surface', 'border'];
 
-export function Txt({ size = 16, weight = 'normal', color = 'text', align = 'start', quran, arabic, lineHeight, style, ...rest }: TxtProps) {
+export function Txt({ size = 16, weight = 'normal', color = 'text', align = 'start', quran, arabic, lineHeight, fixed, style, ...rest }: TxtProps) {
   const { theme } = useMushafTheme();
   const { settings } = useSettings();
   const { dir } = useI18n();
@@ -61,7 +64,7 @@ export function Txt({ size = 16, weight = 'normal', color = 'text', align = 'sta
     s.fontWeight = weight === 'bold' || bold ? '700' : weight === 'medium' ? '600' : '400';
     if (lineHeight) s.lineHeight = lineHeight * fs;
   }
-  return <Text {...rest} style={[s, style]} />;
+  return <Text maxFontSizeMultiplier={MAX_FONT_SCALE} allowFontScaling={!fixed} {...rest} style={[s, style]} />;
 }
 
 /** صف بيبدأ من اليمين في العربي */

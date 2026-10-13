@@ -12,6 +12,7 @@ import { ayahs, BASMALA, isSajda, quarterLabel, quarterStartingAt, surahs, toAra
 import { tajweedSpans } from '@/data/quran/extra';
 import { ARABIC_DIR, useI18n } from '@/i18n';
 import { scaleFactor, useSettings } from '@/store/settings-store';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 import { useMushafTheme } from '@/theme/ThemeContext';
 
 type Item = { k: 'h'; surah: number } | { k: 'b'; surah: number } | { k: 'a'; id: number; n: number };
@@ -80,7 +81,7 @@ export function TextReader({ startAyah, selectedAyah, playingAyah, translation, 
           const s = surahs[item.surah - 1];
           return (
             <View style={[styles.header, { borderColor: c.accent, backgroundColor: c.surface }]}>
-              <Text style={{ fontFamily: font, fontSize: fs * 0.9, color: c.accent, textAlign: 'center' }}>{`سُورَةُ ${s.name}`}</Text>
+              <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={{ fontFamily: font, fontSize: fs * 0.9, color: c.accent, textAlign: 'center' }}>{`سُورَةُ ${s.name}`}</Text>
               {lang === 'en' ? (
                 <Txt size={12} color="textSecondary" align="center">
                   {s.nameEn}
@@ -90,7 +91,7 @@ export function TextReader({ startAyah, selectedAyah, playingAyah, translation, 
           );
         }
         if (item.k === 'b') {
-          return <Text style={{ fontFamily: font, fontSize: fs, color: c.text, textAlign: 'center', marginBottom: 6 }}>{BASMALA}</Text>;
+          return <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={{ fontFamily: font, fontSize: fs, color: c.text, textAlign: 'center', marginBottom: 6 }}>{BASMALA}</Text>;
         }
         const text = ayahs[item.id - 1];
         const q = quarterStartingAt(item.id);
@@ -98,8 +99,8 @@ export function TextReader({ startAyah, selectedAyah, playingAyah, translation, 
         return (
           <Pressable onPress={() => onAyahPress(item.id)} accessibilityRole="button">
             <View style={[styles.ayah, { borderColor: c.border }, active ? { backgroundColor: c.highlight } : null]}>
-              {q ? <Text style={[styles.quarter, { color: c.accent, textAlign: ARABIC_DIR.start }]}>{`۞ ${quarterLabel(q, 'ar')}`}</Text> : null}
-              <Text
+              {q ? <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={[styles.quarter, { color: c.accent, textAlign: ARABIC_DIR.start }]}>{`۞ ${quarterLabel(q, 'ar')}`}</Text> : null}
+              <Text maxFontSizeMultiplier={MAX_FONT_SCALE}
                 style={{
                   fontFamily: font,
                   fontSize: fs,
@@ -110,11 +111,11 @@ export function TextReader({ startAyah, selectedAyah, playingAyah, translation, 
                 }}>
                 {tajweed
                   ? tajweedSpans(item.id, text, 0, text.length).map((s, k) =>
-                      s.cat < 0 ? s.text : <Text key={k} style={{ color: tajColors[s.cat] }}>{s.text}</Text>
+                      s.cat < 0 ? s.text : <Text maxFontSizeMultiplier={MAX_FONT_SCALE} key={k} style={{ color: tajColors[s.cat] }}>{s.text}</Text>
                     )
                   : text}
-                <Text style={{ color: c.accent }}>{` ﴿${toArabicDigits(item.n)}﴾`}</Text>
-                {isSajda(item.id) ? <Text style={{ color: c.accent }}>{' ۩'}</Text> : null}
+                <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={{ color: c.accent }}>{` ﴿${toArabicDigits(item.n)}﴾`}</Text>
+                {isSajda(item.id) ? <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={{ color: c.accent }}>{' ۩'}</Text> : null}
               </Text>
               {translation ? (
                 <Txt size={15} color="textSecondary" lineHeight={1.5} style={{ textAlign: 'left', writingDirection: 'ltr' }}>

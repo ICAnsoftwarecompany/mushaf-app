@@ -192,7 +192,7 @@ function NumberBadge({ n }: { n: number }) {
   const { num } = useI18n();
   return (
     <View style={[styles.badge, { borderColor: theme.colors.accent }]}>
-      <Txt size={13} weight="bold" color="accent" align="center">
+      <Txt fixed size={13} weight="bold" color="accent" align="center">
         {num(n)}
       </Txt>
     </View>

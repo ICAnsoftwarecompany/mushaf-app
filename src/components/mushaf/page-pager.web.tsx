@@ -36,14 +36,14 @@ export function PagePager({ count, index, onIndexChange, renderItem }: PagePager
         disabled={index === count}
         accessibilityLabel="next"
         style={[styles.arrow, styles.left, { backgroundColor: theme.colors.surface, opacity: index === count ? 0.3 : 0.9 }]}>
-        <Text style={[styles.arrowText, { color: theme.colors.accent }]}>‹</Text>
+        <Text allowFontScaling={false} style={[styles.arrowText, { color: theme.colors.accent }]}>‹</Text>
       </Pressable>
       <Pressable
         onPress={() => go(index - 1)}
         disabled={index === 1}
         accessibilityLabel="previous"
         style={[styles.arrow, styles.right, { backgroundColor: theme.colors.surface, opacity: index === 1 ? 0.3 : 0.9 }]}>
-        <Text style={[styles.arrowText, { color: theme.colors.accent }]}>›</Text>
+        <Text allowFontScaling={false} style={[styles.arrowText, { color: theme.colors.accent }]}>›</Text>
       </Pressable>
     </View>
   );

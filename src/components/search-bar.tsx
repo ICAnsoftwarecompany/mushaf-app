@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Icon } from '@/components/ui';
 import { useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 
 export function SearchBar({ value, onChange, placeholder, onClose }: { value: string; onChange: (v: string) => void; placeholder: string; onClose: () => void }) {
   const { t, dir } = useI18n();
@@ -13,7 +14,7 @@ export function SearchBar({ value, onChange, placeholder, onClose }: { value: st
   return (
     <View style={[styles.box, { backgroundColor: c.surface, borderColor: c.accent }]}>
       <Icon name="search" size={18} color={c.textSecondary} />
-      <TextInput
+      <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE}
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}

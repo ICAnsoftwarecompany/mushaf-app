@@ -90,7 +90,7 @@ export default function NotifHelpScreen() {
           <Card key={st.title} style={{ gap: 8 }}>
             <Row style={{ gap: 10 }}>
               <View style={[styles.num, { backgroundColor: c.accent }]}>
-                <Txt size={13} weight="bold" color={c.background} align="center">
+                <Txt fixed size={13} weight="bold" color={c.background} align="center">
                   {num(i + 1)}
                 </Txt>
               </View>

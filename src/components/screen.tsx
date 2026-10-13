@@ -86,7 +86,7 @@ export function HeaderButton({ icon, label, onPress, badge }: { icon: Parameters
       <Icon name={icon} size={20} color={theme.colors.accent} />
       {badge ? (
         <View style={[styles.badge, { backgroundColor: '#C0392B', borderColor: theme.colors.background }]}>
-          <Txt size={10} weight="bold" color="#FFFFFF" align="center">
+          <Txt fixed size={10} weight="bold" color="#FFFFFF" align="center">
             {badge > 9 ? '9+' : String(badge)}
           </Txt>
         </View>

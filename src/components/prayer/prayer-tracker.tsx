@@ -117,7 +117,7 @@ export function AfterPrayerPrompt({ prayer, onClose }: { prayer: Salah | null; o
           <View style={[styles.badge, { backgroundColor: c.highlight }]}>
             <Icon name="checkmark" size={28} color={c.accent} />
           </View>
-          <Txt size={20} weight="bold" align="center">
+          <Txt fixed size={20} weight="bold" align="center">
             {t('accepted')}
           </Txt>
           <Txt size={15} color="textSecondary" align="center">

@@ -189,19 +189,19 @@ function MushafPageView({
     const base = { fontFamily: font, fontSize: size, lineHeight: lh, color: c.text, writingDirection: 'rtl' as const };
     if (!tajweed)
       return (
-        <Text style={base} numberOfLines={1}>
+        <Text allowFontScaling={false} style={base} numberOfLines={1}>
           {w.text}
         </Text>
       );
     const full = ayahs[w.ayahId - 1];
     const spans = tajweedSpans(w.ayahId, full, w.start, w.start + w.text.length);
     return (
-      <Text style={base} numberOfLines={1}>
+      <Text allowFontScaling={false} style={base} numberOfLines={1}>
         {spans.map((s, k) =>
           s.cat < 0 ? (
             s.text
           ) : (
-            <Text key={k} style={{ color: tajColors[s.cat] }}>
+            <Text allowFontScaling={false} key={k} style={{ color: tajColors[s.cat] }}>
               {s.text}
             </Text>
           )
@@ -231,7 +231,7 @@ function MushafPageView({
                 marginHorizontal: w.text ? size * 0.08 : 0,
               },
             ]}>
-            <Text style={{ fontSize: size * 0.42, color: c.accent, fontWeight: '600' }}>{toArabicDigits(ayahNumber(w.ayahId))}</Text>
+            <Text allowFontScaling={false} style={{ fontSize: size * 0.42, color: c.accent, fontWeight: '600' }}>{toArabicDigits(ayahNumber(w.ayahId))}</Text>
           </View>
         )}
       </Pressable>
@@ -246,7 +246,7 @@ function MushafPageView({
       sp.cat < 0 ? (
         sp.text
       ) : (
-        <Text key={k} style={{ color: tajColors[sp.cat] }}>
+        <Text allowFontScaling={false} key={k} style={{ color: tajColors[sp.cat] }}>
           {sp.text}
         </Text>
       )
@@ -265,15 +265,15 @@ function MushafPageView({
       const ws = run;
       run = [];
       blocks.push(
-        <Text
+        <Text allowFontScaling={false}
           key={key}
           style={{ fontFamily: font, fontSize: zfs, lineHeight: zfs * 2, color: c.text, writingDirection: 'rtl', textAlign: 'center' }}>
           {ws.map((w, k) => {
             const hl = selectedAyah === w.ayahId || playingAyah === w.ayahId;
             return (
-              <Text key={k} onPress={() => onAyahPress?.(w.ayahId)} style={hl ? { backgroundColor: c.highlight } : undefined}>
+              <Text allowFontScaling={false} key={k} onPress={() => onAyahPress?.(w.ayahId)} style={hl ? { backgroundColor: c.highlight } : undefined}>
                 {w.text !== '' ? wordContent(w) : null}
-                {w.end ? <Text style={{ color: c.accent, fontSize: zfs * 0.8 }}>{` \uFD3F${toArabicDigits(ayahNumber(w.ayahId))}\uFD3E`}</Text> : null}
+                {w.end ? <Text allowFontScaling={false} style={{ color: c.accent, fontSize: zfs * 0.8 }}>{` \uFD3F${toArabicDigits(ayahNumber(w.ayahId))}\uFD3E`}</Text> : null}
                 {k < ws.length - 1 ? ' ' : ''}
               </Text>
             );
@@ -288,14 +288,14 @@ function MushafPageView({
         line[0] === 'h' ? (
           <View key={i} style={[styles.lineBox, { paddingVertical: zfs * 0.4 }]}>
             <View style={[styles.surahHeader, { borderColor: c.accent, backgroundColor: c.surface }]}>
-              <Text style={{ fontFamily: font, fontSize: zfs * 0.9, color: c.accent, writingDirection: 'rtl' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: font, fontSize: zfs * 0.9, color: c.accent, writingDirection: 'rtl' }}>
                 {`سُورَةُ ${getSurah(line[1]).name}`}
               </Text>
             </View>
           </View>
         ) : (
           <View key={i} style={[styles.lineBox, { paddingVertical: zfs * 0.2 }]}>
-            <Text style={{ fontFamily: font, fontSize: zfs, lineHeight: zfs * 1.9, color: c.text, writingDirection: 'rtl', textAlign: 'center' }}>
+            <Text allowFontScaling={false} style={{ fontFamily: font, fontSize: zfs, lineHeight: zfs * 1.9, color: c.text, writingDirection: 'rtl', textAlign: 'center' }}>
               {BASMALA}
             </Text>
           </View>
@@ -314,11 +314,11 @@ function MushafPageView({
       <View style={[styles.margin, { height: headerH, flexDirection: ARABIC_DIR.row }]}>
         {showMargins && (
           <>
-            <Text style={[styles.marginText, { color: c.textSecondary }]}>{`سورة ${firstSurah.name}`}</Text>
+            <Text allowFontScaling={false} style={[styles.marginText, { color: c.textSecondary }]}>{`سورة ${firstSurah.name}`}</Text>
             {quarter ? (
-              <Text style={[styles.marginText, { color: c.accent }]}>{`۞ ${quarterLabel(quarter, 'ar')}`}</Text>
+              <Text allowFontScaling={false} style={[styles.marginText, { color: c.accent }]}>{`۞ ${quarterLabel(quarter, 'ar')}`}</Text>
             ) : null}
-            <Text style={[styles.marginText, { color: c.textSecondary }]}>{`الجزء ${JUZ_NAMES[juz - 1]}`}</Text>
+            <Text allowFontScaling={false} style={[styles.marginText, { color: c.textSecondary }]}>{`الجزء ${JUZ_NAMES[juz - 1]}`}</Text>
           </>
         )}
       </View>
@@ -335,7 +335,7 @@ function MushafPageView({
               return (
                 <View key={i} style={[styles.lineBox, { height: lineH }]}>
                   <View style={[styles.surahHeader, { borderColor: c.accent, backgroundColor: c.surface }]}>
-                    <Text style={{ fontFamily: font, fontSize: fontSize * 0.9, color: c.accent, writingDirection: 'rtl' }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: font, fontSize: fontSize * 0.9, color: c.accent, writingDirection: 'rtl' }}>
                       {`سُورَةُ ${getSurah(line[1]).name}`}
                     </Text>
                   </View>
@@ -345,7 +345,7 @@ function MushafPageView({
             if (line[0] === 'b') {
               return (
                 <View key={i} style={[styles.lineBox, { height: lineH }]}>
-                  <Text style={{ fontFamily: font, fontSize, color: c.text, writingDirection: 'rtl' }}>{BASMALA}</Text>
+                  <Text allowFontScaling={false} style={{ fontFamily: font, fontSize, color: c.text, writingDirection: 'rtl' }}>{BASMALA}</Text>
                 </View>
               );
             }
@@ -379,7 +379,7 @@ function MushafPageView({
                 onLayout={(e) => onMeasure(i, e.nativeEvent.layout.width)}>
                 {words.map((w, k) => (
                   <View key={k} style={[styles.word, { flexDirection: ARABIC_DIR.row }]}>
-                    {w.text !== '' && <Text style={{ fontFamily: font, fontSize: MEASURE_FONT }}>{w.text}</Text>}
+                    {w.text !== '' && <Text allowFontScaling={false} style={{ fontFamily: font, fontSize: MEASURE_FONT }}>{w.text}</Text>}
                     {w.end && <View style={{ width: MEASURE_FONT * 1.2, height: 1 }} />}
                   </View>
                 ))}
@@ -390,7 +390,7 @@ function MushafPageView({
       )}
 
       <View style={[styles.margin, styles.footer, { height: footerH }]}>
-        {showMargins && <Text style={[styles.marginText, { color: c.textSecondary }]}>{toArabicDigits(page)}</Text>}
+        {showMargins && <Text allowFontScaling={false} style={[styles.marginText, { color: c.textSecondary }]}>{toArabicDigits(page)}</Text>}
       </View>
     </Pressable>
   );

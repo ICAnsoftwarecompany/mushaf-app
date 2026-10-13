@@ -11,6 +11,7 @@ import { getSurah, pageOfAyah, surahLabel, surahs, TOTAL_PAGES } from '@/data/qu
 import { normalizeArabic } from '@/data/quran/search';
 import { useI18n } from '@/i18n';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 
 /** أرقام عربية أو إنجليزية → رقم */
 const parseNum = (s: string) => Number(s.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[^0-9]/g, ''));
@@ -72,7 +73,7 @@ export default function GoToScreen() {
             <Txt size={14} color="textSecondary">
               {t('pageNumber')}
             </Txt>
-            <TextInput
+            <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE}
               value={page}
               onChangeText={(v) => {
                 setPage(v);
@@ -100,7 +101,7 @@ export default function GoToScreen() {
               </Pressable>
             </Row>
             <Txt size={14} color="textSecondary">{`${t('ayahNumber')} (1–${getSurah(surah).ayahs})`}</Txt>
-            <TextInput
+            <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE}
               value={ayah}
               onChangeText={(v) => {
                 setAyah(v);
@@ -117,7 +118,7 @@ export default function GoToScreen() {
           </Card>
         ) : (
           <View style={{ flex: 1, gap: 8 }}>
-            <TextInput value={query} onChangeText={setQuery} placeholder={t('chooseSurah')} placeholderTextColor={c.textSecondary} style={input} />
+            <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE} value={query} onChangeText={setQuery} placeholder={t('chooseSurah')} placeholderTextColor={c.textSecondary} style={input} />
             <FlatList
               data={filtered}
               keyExtractor={(s) => String(s.id)}

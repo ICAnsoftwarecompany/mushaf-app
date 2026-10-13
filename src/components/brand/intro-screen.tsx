@@ -57,10 +57,10 @@ export function IntroScreen({ onDone }: { onDone: () => void }) {
             accessibilityIgnoresInvertColors
           />
 
-          <Text style={[styles.ayah, { fontSize: ayahSize, lineHeight: ayahSize * 1.9 }]}>
+          <Text allowFontScaling={false} style={[styles.ayah, { fontSize: ayahSize, lineHeight: ayahSize * 1.9 }]}>
             {`﴿${NAME_AYAH_TEXT}﴾`}
           </Text>
-          <Text style={styles.ref}>{`[${getSurah(NAME_SURAH).name}: ${toArabicDigits(NAME_AYAH)}]`}</Text>
+          <Text allowFontScaling={false} style={styles.ref}>{`[${getSurah(NAME_SURAH).name}: ${toArabicDigits(NAME_AYAH)}]`}</Text>
         </Animated.View>
 
         <Animated.Text style={[styles.tagline, { opacity: content }]}>{t('tagline')}</Animated.Text>

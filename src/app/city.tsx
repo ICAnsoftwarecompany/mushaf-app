@@ -12,6 +12,7 @@ import { cityToLocation, countries, searchCities } from '@/features/prayer/praye
 import { useI18n } from '@/i18n';
 import { useSettings } from '@/store/settings-store';
 import { useMushafTheme } from '@/theme/ThemeContext';
+import { MAX_FONT_SCALE } from '@/constants/font-scale';
 
 export default function CityScreen() {
   const { t, lang, dir } = useI18n();
@@ -43,7 +44,7 @@ export default function CityScreen() {
             {msg}
           </Txt>
         ) : null}
-        <TextInput
+        <TextInput maxFontSizeMultiplier={MAX_FONT_SCALE}
           value={q}
           onChangeText={setQ}
           placeholder={t('searchCity')}
