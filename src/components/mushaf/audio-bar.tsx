@@ -27,7 +27,7 @@ export function AudioBar() {
   const s = surahOfAyah(audio.ayahId);
   const reciter = reciterById(reciterId);
   const key = jobKey(reciterId, 's', s.id);
-  const files = surahFiles(s.id);
+  const files = surahFiles(s.id, reciterId);
   const downloaded = dl.isComplete(files);
   const job = dl.job(key);
   const progress = job ? job.done / job.files.length : null;
@@ -38,12 +38,13 @@ export function AudioBar() {
       <Row style={{ justifyContent: 'space-between', gap: 8 }}>
         <View style={{ flex: 1 }}>
           <Txt size={14} weight="bold" numberOfLines={1}>
-            {`${surahLabel(s, lang)} · ${t('ayahN', { n: ayahNumber(audio.ayahId) })}`}
+            {audio.surahMode ? `${surahLabel(s, lang)} · ${t('wholeSurah')}` : `${surahLabel(s, lang)} · ${t('ayahN', { n: ayahNumber(audio.ayahId) })}`}
           </Txt>
           <Txt size={12} color="textSecondary" numberOfLines={1}>
             {lang === 'ar' ? reciter.ar : reciter.en}
           </Txt>
         </View>
+        {audio.surahMode ? null : (
         <Pressable
           onPress={() => update({ repeatAyah: settings.repeatAyah >= 5 ? 1 : settings.repeatAyah + 1 })}
           accessibilityRole="button"
@@ -56,11 +57,12 @@ export function AudioBar() {
             </Txt>
           </Row>
         </Pressable>
+        )}
       </Row>
 
       {audio.error ? (
         <Txt size={12} color="#C0392B">
-          {t('audioError')}
+          {audio.notRecorded ? t('surahNotRecorded', { name: lang === 'ar' ? reciter.ar : reciter.en }) : t('audioError')}
         </Txt>
       ) : null}
 

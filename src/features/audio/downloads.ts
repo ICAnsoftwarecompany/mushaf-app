@@ -16,12 +16,16 @@ import { useSyncExternalStore } from 'react';
 import { getSurah, juzList, surahOfAyah, ayahNumber, TOTAL_AYAHS } from '@/data/quran';
 
 import { canDownload, deleteFiles, downloadAyahFile, downloadedNames } from './offline';
-import { ayahFileName } from './reciters';
+import { ayahFileName, isSurahReciter, reciterHasSurah } from './reciters';
 
 export type AyahRef = [surah: number, ayah: number];
 
-/** ملفات السورة: آياتها + البسملة (من الفاتحة) لكل السور ما عدا الفاتحة والتوبة */
-export function surahFiles(s: number): AyahRef[] {
+/**
+ * ملفات السورة: آياتها + البسملة (من الفاتحة) لكل السور ما عدا الفاتحة والتوبة.
+ * قارئ «سورة كاملة»: ملف واحد [سورة، 0] — أو مفيش لو السورة مش مسجّلة.
+ */
+export function surahFiles(s: number, reciter?: string): AyahRef[] {
+  if (reciter && isSurahReciter(reciter)) return reciterHasSurah(reciter, s) ? [[s, 0]] : [];
   const out: AyahRef[] = [];
   if (s !== 1 && s !== 9) out.push([1, 1]);
   for (let a = 1; a <= getSurah(s).ayahs; a++) out.push([s, a]);
@@ -34,8 +38,17 @@ export function juzRange(j: number): [first: number, last: number] {
   return [first, last];
 }
 
-export function juzFiles(j: number): AyahRef[] {
+export function juzFiles(j: number, reciter?: string): AyahRef[] {
   const [first, last] = juzRange(j);
+  if (reciter && isSurahReciter(reciter)) {
+    // السور اللي بتبدأ في الجزء ده ومسجّلة
+    const out: AyahRef[] = [];
+    for (let id = first; id <= last; id++) {
+      const s = surahOfAyah(id);
+      if (id === s.firstAyah && reciterHasSurah(reciter, s.id)) out.push([s.id, 0]);
+    }
+    return out;
+  }
   const out: AyahRef[] = [];
   const seen = new Set<number>();
   for (let id = first; id <= last; id++) {
@@ -87,8 +100,8 @@ function filesForKey(key: string): { reciter: string; files: AyahRef[] } | null 
   const m = key.match(/^(.+):([sj])(\d+)$/);
   if (!m) return null;
   const n = Number(m[3]);
-  if (m[2] === 's' && n >= 1 && n <= 114) return { reciter: m[1], files: surahFiles(n) };
-  if (m[2] === 'j' && n >= 1 && n <= 30) return { reciter: m[1], files: juzFiles(n) };
+  if (m[2] === 's' && n >= 1 && n <= 114) return { reciter: m[1], files: surahFiles(n, m[1]) };
+  if (m[2] === 'j' && n >= 1 && n <= 30) return { reciter: m[1], files: juzFiles(n, m[1]) };
   return null;
 }
 
@@ -217,7 +230,8 @@ export function clearFailed() {
 
 export function deleteSurahFiles(reciter: string, s: number) {
   const names: string[] = [];
-  for (let a = 1; a <= getSurah(s).ayahs; a++) names.push(ayahFileName(s, a));
+  if (isSurahReciter(reciter)) names.push(ayahFileName(s, 0));
+  else for (let a = 1; a <= getSurah(s).ayahs; a++) names.push(ayahFileName(s, a));
   deleteFiles(reciter, names);
   version++;
   emit();
@@ -236,11 +250,14 @@ export function useDownloads(reciter: string) {
     jobs: snap.jobs,
     failedKey: lastFailed,
     job: (key: string) => snap.jobs.find((j) => j.key === key),
-    isComplete: (files: AyahRef[]) => canDownload && files.every(([s, a]) => names.has(ayahFileName(s, a))),
+    isComplete: (files: AyahRef[]) => canDownload && files.length > 0 && files.every(([s, a]) => names.has(ayahFileName(s, a))),
     downloadedSurahs: () => {
       if (!canDownload) return [] as number[];
       const out: number[] = [];
-      for (let s = 1; s <= 114; s++) if (surahFiles(s).every(([x, a]) => names.has(ayahFileName(x, a)))) out.push(s);
+      for (let s = 1; s <= 114; s++) {
+        const files = surahFiles(s, reciter);
+        if (files.length && files.every(([x, a]) => names.has(ayahFileName(x, a)))) out.push(s);
+      }
       return out;
     },
   };

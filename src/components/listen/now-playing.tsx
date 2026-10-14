@@ -38,7 +38,7 @@ export function NowPlaying() {
             {surahLabel(s, lang)}
           </Txt>
           <Txt size={12} color="textSecondary" numberOfLines={1}>
-            {`${t('ayahOfN', { n: num(n), m: num(s.ayahs) })} · ${lang === 'ar' ? r.ar : r.en}`}
+            {`${audio.surahMode ? t('wholeSurah') : t('ayahOfN', { n: num(n), m: num(s.ayahs) })} · ${lang === 'ar' ? r.ar : r.en}`}
           </Txt>
         </View>
         <Pressable
@@ -51,13 +51,15 @@ export function NowPlaying() {
         </Pressable>
       </Row>
 
-      <View style={[styles.track, { backgroundColor: c.border }]}>
-        <View style={[styles.fill, { backgroundColor: c.accent, width: `${Math.round(fraction * 100)}%` }]} />
-      </View>
+      {audio.surahMode ? null : (
+        <View style={[styles.track, { backgroundColor: c.border }]}>
+          <View style={[styles.fill, { backgroundColor: c.accent, width: `${Math.round(fraction * 100)}%` }]} />
+        </View>
+      )}
 
       {audio.error ? (
         <Txt size={12} color="#C0392B">
-          {t('audioError')}
+          {audio.notRecorded ? t('surahNotRecorded', { name: lang === 'ar' ? r.ar : r.en }) : t('audioError')}
         </Txt>
       ) : null}
 

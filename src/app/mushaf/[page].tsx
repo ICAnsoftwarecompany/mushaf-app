@@ -187,7 +187,7 @@ export default function MushafScreen() {
       height={area!.height}
       fitWidth={fitWidth}
       selectedAyah={selectedAyah}
-      playingAyah={audio.ayahId}
+      playingAyah={audio.surahMode ? null : audio.ayahId}
       tajweed={tajweedEnabled}
       bold={settings.mushafBold}
       showMargins={settings.showMargins}
@@ -337,7 +337,7 @@ export default function MushafScreen() {
                 <TextReader
                   startAyah={selectedAyah ?? firstAyahOfPage(page)}
                   selectedAyah={selectedAyah}
-                  playingAyah={audio.ayahId}
+                  playingAyah={audio.surahMode ? null : audio.ayahId}
                   translation={showTranslation ? translation : null}
                   tajweed={tajweedEnabled}
                   onAyahPress={onAyahPress}

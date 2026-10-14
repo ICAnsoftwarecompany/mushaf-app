@@ -22,7 +22,7 @@ import { useAudio } from '@/features/audio/audio-store';
 import { deleteSurahFiles, juzFiles, jobKey, surahFiles, useDownloads } from '@/features/audio/downloads';
 import { canDownload, totalDownloadedBytes } from '@/features/audio/offline';
 import { playlistName } from '@/features/audio/playlists';
-import { reciterById } from '@/features/audio/reciters';
+import { isSurahReciter, reciterById, reciterHasSurah } from '@/features/audio/reciters';
 import { useI18n } from '@/i18n';
 import { fuzzyFilter, searchable } from '@/lib/fuzzy';
 import { type Playlist, useReading } from '@/store/reading-store';
@@ -58,6 +58,9 @@ export default function ListenScreen() {
   const [query, setQuery] = useState('');
   const q = useDeferredValue(searching ? query.trim() : '');
   const reciter = reciterById(settings.reciter);
+  // قارئ «سورة كاملة» (الشيخ محمد رفعت): السور المسجّلة بس، ومن غير تاب الأجزاء
+  const surahOnly = isSurahReciter(settings.reciter);
+  const recorded = (id: number) => reciterHasSurah(settings.reciter, id);
   const playingSurah = audio.ayahId != null ? surahOfAyah(audio.ayahId).id : null;
 
   useEffect(() => {
@@ -69,8 +72,8 @@ export default function ListenScreen() {
   const downloaded = tab === 'downloads' ? dl.downloadedSurahs() : [];
   const noResults: Item = { k: 'empty', title: t('noResults'), hint: t('searchFlexHint') };
   const items: Item[] = (() => {
-    if (tab === 'surahs') {
-      const ids = fuzzyFilter(ALL_SURAHS, q, (id) => SURAH_INDEX[id - 1]);
+    if (tab === 'surahs' || (tab === 'juz' && surahOnly)) {
+      const ids = fuzzyFilter(ALL_SURAHS.filter(recorded), q, (id) => SURAH_INDEX[id - 1]);
       return ids.length ? ids.map((id) => ({ k: 'surah' as const, id })) : [noResults];
     }
     if (tab === 'juz') {
@@ -93,10 +96,13 @@ export default function ListenScreen() {
   })();
 
   const playSurah = (id: number) => audio.playSurahs(ALL_SURAHS, id - 1, { title: t('fullQuran') });
+  const playable = ALL_SURAHS.filter(recorded);
+  const playRecorded = (id: number) =>
+    surahOnly ? audio.playSurahs(playable, playable.indexOf(id), { title: lang === 'ar' ? reciter.ar : reciter.en }) : playSurah(id);
 
   const tabs: { value: Tab; label: string }[] = [
     { value: 'surahs', label: t('surahs') },
-    { value: 'juz', label: t('juzs') },
+    ...(surahOnly ? [] : [{ value: 'juz' as Tab, label: t('juzs') }]),
     { value: 'playlists', label: t('playlists') },
     ...(canDownload ? [{ value: 'downloads' as Tab, label: t('downloadsTab') }] : []),
   ];
@@ -119,6 +125,11 @@ export default function ListenScreen() {
           </Row>
         </Card>
       </Pressable>
+      {surahOnly ? (
+        <Txt size={12} color="textSecondary">
+          {t('surahReciterNote', { name: lang === 'ar' ? reciter.ar : reciter.en, n: num(reciter.surahs?.length ?? 0) })}
+        </Txt>
+      ) : null}
       <NowPlaying />
       <Segmented value={tab} options={tabs} onChange={setTab} />
       {searching ? (
@@ -194,12 +205,12 @@ export default function ListenScreen() {
                   title={surahLabel(s, lang)}
                   subtitle={`${s.type === 'meccan' ? t('meccan') : t('medinan')} · ${t('ayahsCount', { n: num(s.ayahs) })}`}
                   active={active}
-                  onPress={() => playSurah(s.id)}>
+                  onPress={() => playRecorded(s.id)}>
                   <IconBtn icon="playlistAdd" label={t('addToPlaylist')} onPress={() => setAdding(s.id)} />
                   {item.del ? (
                     <IconBtn icon="trash" label={t('deleteDownload')} onPress={() => deleteSurahFiles(settings.reciter, s.id)} />
                   ) : (
-                    <DownloadButton jobKey={jobKey(settings.reciter, 's', s.id)} files={surahFiles(s.id)} label={t('downloadSurah')} />
+                    <DownloadButton jobKey={jobKey(settings.reciter, 's', s.id)} files={surahFiles(s.id, settings.reciter)} label={t('downloadSurah')} />
                   )}
                 </ListRow>
               );
@@ -214,7 +225,7 @@ export default function ListenScreen() {
                   subtitle={t('startsAt', { surah: surahLabel(start, lang), ayah: num(j.ayah) })}
                   active={false}
                   onPress={() => audio.playSurahs(ALL_SURAHS, start.id - 1, { startAyahId: j.ayahId, title: juzLabel(j.id, lang) })}>
-                  <DownloadButton jobKey={jobKey(settings.reciter, 'j', j.id)} files={juzFiles(j.id)} label={t('downloadJuz')} />
+                  <DownloadButton jobKey={jobKey(settings.reciter, 'j', j.id)} files={juzFiles(j.id, settings.reciter)} label={t('downloadJuz')} />
                 </ListRow>
               );
             }

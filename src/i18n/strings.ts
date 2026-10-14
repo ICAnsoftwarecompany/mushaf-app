@@ -257,6 +257,11 @@ const ar = {
   downloading: 'جاري التحميل {p}%',
   downloaded: 'متحمّلة',
   audioError: 'تعذّر تشغيل التلاوة. اتأكد من الاتصال بالإنترنت أو حمّل السورة.',
+  wholeSurah: 'السورة كاملة',
+  surahNotRecorded: 'السورة دي مش مسجّلة بصوت الشيخ {name} — اختار سورة من المسجّلة أو قارئ تاني.',
+  notRecordedShort: 'مش مسجّلة بصوت القارئ ده',
+  surahReciterNote: 'الشيخ {name}: {n} سورة مسجّلة بس (تسجيلات قديمة) — كل سورة بتشتغل كاملة من غير تظليل الآيات.',
+  surahReciterBadge: '{n} سورة مسجّلة',
 
   // العلامات
   bookmarksSubtitle: 'الصفحات والآيات اللي حفظتها',
@@ -703,6 +708,11 @@ const en: typeof ar = {
   downloading: 'Downloading {p}%',
   downloaded: 'Downloaded',
   audioError: 'Could not play the recitation. Check your connection or download the surah.',
+  wholeSurah: 'Whole surah',
+  surahNotRecorded: 'This surah isn’t recorded by Sheikh {name} — pick a recorded surah or another reciter.',
+  notRecordedShort: 'Not recorded by this reciter',
+  surahReciterNote: 'Sheikh {name}: only {n} surahs are recorded (historic recordings) — each surah plays whole, without ayah highlighting.',
+  surahReciterBadge: '{n} surahs recorded',
 
   bookmarksSubtitle: 'Pages and ayahs you saved',
   noBookmarks: 'No bookmarks yet',

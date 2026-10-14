@@ -3,6 +3,8 @@
  * - من القارئ: بيشغّل من آية لحد آخر السورة.
  * - من تاب الاستماع: طابور سور (المصحف كله، أو جزء، أو قايمة استماع) سورة ورا سورة، مع التكرار.
  * البسملة بتتقري قبل أول كل سورة (ما عدا الفاتحة والتوبة)، والتشغيل من الملفات المتحمّلة لو موجودة.
+ * قارئ «سورة كاملة» (الشيخ محمد رفعت): ملف واحد للسورة (surahMode)، من غير تظليل آية،
+ * و«التالي/السابق» بالسورة، والسور اللي مش مسجّلة بتتخطى في الطابور (notRecorded لو مفيش غيرها).
  */
 import { type AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -13,7 +15,7 @@ import { useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
 
 import { localAyahUri } from './offline';
-import { ayahUrl, reciterById } from './reciters';
+import { ayahUrl, isSurahReciter, reciterById, reciterHasSurah } from './reciters';
 
 interface AudioState {
   ayahId: number | null;
@@ -28,6 +30,10 @@ interface AudioState {
   loop: boolean;
   /** القارئ اللي بيقرا دلوقتي (قارئ القايمة أو الافتراضي) */
   reciter: string | null;
+  /** بيشغّل سورة كاملة (مش آية بآية) — ayahId = أول آية في السورة */
+  surahMode: boolean;
+  /** السورة مش مسجّلة بصوت القارئ ده */
+  notRecorded: boolean;
 }
 
 interface AudioContextValue extends AudioState {
@@ -53,6 +59,8 @@ const EMPTY: AudioState = {
   queueTitle: null,
   loop: false,
   reciter: null,
+  surahMode: false,
+  notRecorded: false,
 };
 
 const AudioContext = createContext<AudioContextValue | null>(null);
@@ -76,6 +84,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   /** قارئ القايمة (لو ليها قارئ خاص) */
   const reciterOverride = useRef<string | null>(null);
   const settingsRef = useRef(settings);
+  const reciterNow = () => reciterOverride.current ?? settingsRef.current.reciter;
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
@@ -107,7 +116,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       const p = getPlayer();
       const reciter = reciterOverride.current ?? settingsRef.current.reciter;
       const uri = localAyahUri(reciter, surah, ayah) ?? ayahUrl(reciter, surah, ayah);
-      setState((st) => ({ ...st, ayahId: shownAyahId, playing: true, loading: true, error: false, reciter }));
+      const surahMode = ayah === 0;
+      setState((st) => ({ ...st, ayahId: shownAyahId, playing: true, loading: true, error: false, notRecorded: false, reciter, surahMode }));
       clearLoadTimer();
       loadTimer.current = setTimeout(() => {
         loadTimer.current = null;
@@ -124,7 +134,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
           const lang = settingsRef.current.language;
           const r = reciterById(reciter);
           p.setActiveForLockScreen(true, {
-            title: `${surahLabel(s, lang)} · ${ayahNumber(shownAyahId)}`,
+            title: surahMode ? surahLabel(s, lang) : `${surahLabel(s, lang)} · ${ayahNumber(shownAyahId)}`,
             artist: lang === 'ar' ? r.ar : r.en,
             albumTitle: lang === 'ar' ? 'يتلو' : 'Yatlu',
           });
@@ -139,6 +149,21 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   /** تشغيل آية (والبسملة قبلها لو أول السورة) */
   const load = useCallback(
     (ayahId: number, withBasmala = true) => {
+      const rid = reciterNow();
+      if (isSurahReciter(rid)) {
+        // سورة كاملة: من أولها دايمًا (مفيش ملف لكل آية)
+        const s = surahOfAyah(ayahId);
+        current.current = s.firstAyah;
+        basmalaFor.current = null;
+        repeatsLeft.current = 1;
+        if (!reciterHasSurah(rid, s.id)) {
+          player.current?.pause();
+          setState((st) => ({ ...st, ayahId: s.firstAyah, playing: false, loading: false, error: true, notRecorded: true, reciter: rid, surahMode: true }));
+          return;
+        }
+        playFile(s.id, 0, s.firstAyah);
+        return;
+      }
       current.current = ayahId;
       repeatsLeft.current = Math.max(1, settingsRef.current.repeatAyah);
       if (withBasmala && needsBasmala(ayahId)) {
@@ -166,6 +191,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     (index: number, startAyahId?: number) => {
       const q = queue.current;
       if (!q) return;
+      const rid = reciterNow();
+      if (isSurahReciter(rid)) {
+        // نتخطى السور اللي مش مسجّلة
+        let i = index;
+        while (i < q.surahs.length && !reciterHasSurah(rid, q.surahs[i])) i++;
+        if (i >= q.surahs.length) return load(getSurah(q.surahs[index]).firstAyah); // بيعرض «مش مسجّلة»
+        if (i !== index) startAyahId = undefined;
+        index = i;
+      }
       q.index = index;
       setState((st) => ({ ...st, queueIndex: index }));
       load(startAyahId ?? getSurah(q.surahs[index]).firstAyah);
@@ -188,7 +222,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     const s = surahOfAyah(id);
-    if (id < s.firstAyah + s.ayahs - 1) return load(id + 1);
+    if (!isSurahReciter(reciterNow()) && id < s.firstAyah + s.ayahs - 1) return load(id + 1);
     // سورة خلصت للآخر → «سماع القرآن» في «أنا مسلم»
     markActivity('listen');
     const q = queue.current;
@@ -232,19 +266,12 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     else p.play();
   }, []);
 
-  const next = useCallback(() => {
-    const id = current.current;
-    if (id === null) return;
-    const s = surahOfAyah(id);
-    if (id < s.firstAyah + s.ayahs - 1) load(id + 1, false);
-    else if (queue.current && queue.current.index + 1 < queue.current.surahs.length) startQueueAt(queue.current.index + 1);
-    else if (!queue.current && id < 6236) load(id + 1);
-  }, [load, startQueueAt]);
-
-  const previous = useCallback(() => {
-    const id = current.current;
-    if (id !== null && id > 1) load(id - 1, false);
-  }, [load]);
+  /** أقرب سورة مسجّلة بعد/قبل السورة دي (لقارئ السورة الكاملة) */
+  const recordedFrom = (from: number, step: 1 | -1) => {
+    const rid = reciterNow();
+    for (let n = from; n >= 1 && n <= 114; n += step) if (reciterHasSurah(rid, n)) return n;
+    return null;
+  };
 
   const nextSurah = useCallback(() => {
     const q = queue.current;
@@ -256,24 +283,53 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const id = current.current;
     if (id !== null) {
       const s = surahOfAyah(id);
-      if (s.id < 114) load(getSurah(s.id + 1).firstAyah);
+      const n = isSurahReciter(reciterNow()) ? recordedFrom(s.id + 1, 1) : s.id < 114 ? s.id + 1 : null;
+      if (n) load(getSurah(n).firstAyah);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load, startQueueAt]);
 
   const previousSurah = useCallback(() => {
     const id = current.current;
     if (id === null) return;
     const s = surahOfAyah(id);
-    // لو عدّينا أول آيتين، نرجع لأول نفس السورة
-    if (ayahNumber(id) > 2) return load(s.firstAyah);
+    const surahMode = isSurahReciter(reciterNow());
+    // لو عدّينا أول آيتين (أو أول ٥ ثواني في السورة الكاملة)، نرجع لأول نفس السورة
+    if (!surahMode && ayahNumber(id) > 2) return load(s.firstAyah);
+    if (surahMode && (player.current?.currentTime ?? 0) > 5) {
+      player.current?.seekTo(0);
+      return;
+    }
     const q = queue.current;
     if (q) {
-      if (q.index > 0) startQueueAt(q.index - 1);
+      let i = q.index - 1;
+      if (surahMode) while (i >= 0 && !reciterHasSurah(reciterNow(), q.surahs[i])) i--;
+      if (i >= 0) startQueueAt(i);
       else load(s.firstAyah);
       return;
     }
-    if (s.id > 1) load(getSurah(s.id - 1).firstAyah);
+    const n = surahMode ? recordedFrom(s.id - 1, -1) : s.id > 1 ? s.id - 1 : null;
+    if (n) load(getSurah(n).firstAyah);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load, startQueueAt]);
+
+  const next = useCallback(() => {
+    const id = current.current;
+    if (id === null) return;
+    if (isSurahReciter(reciterNow())) return nextSurah();
+    const s = surahOfAyah(id);
+    if (id < s.firstAyah + s.ayahs - 1) load(id + 1, false);
+    else if (queue.current && queue.current.index + 1 < queue.current.surahs.length) startQueueAt(queue.current.index + 1);
+    else if (!queue.current && id < 6236) load(id + 1);
+     
+  }, [load, startQueueAt, nextSurah]);
+
+  const previous = useCallback(() => {
+    const id = current.current;
+    if (isSurahReciter(reciterNow())) return previousSurah();
+    if (id !== null && id > 1) load(id - 1, false);
+     
+  }, [load, previousSurah]);
 
   const setLoop = useCallback((v: boolean) => {
     loop.current = v;

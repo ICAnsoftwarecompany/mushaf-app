@@ -17,7 +17,7 @@ import { normalizeArabic as normalize } from '@/data/quran/search';
 import { useAudio } from '@/features/audio/audio-store';
 import { jobKey, surahFiles } from '@/features/audio/downloads';
 import { playlistName } from '@/features/audio/playlists';
-import { RECITERS, reciterById } from '@/features/audio/reciters';
+import { RECITERS, reciterById, reciterHasSurah } from '@/features/audio/reciters';
 import { useI18n } from '@/i18n';
 import { useReading } from '@/store/reading-store';
 import { useSettings } from '@/store/settings-store';
@@ -124,12 +124,12 @@ export default function PlaylistScreen() {
             <ListRow
               number={num(index + 1)}
               title={surahLabel(surah, lang)}
-              subtitle={t('ayahsCount', { n: num(surah.ayahs) })}
+              subtitle={reciterHasSurah(rid, s) ? t('ayahsCount', { n: num(surah.ayahs) }) : t('notRecordedShort')}
               active={index === playingIndex && playingSurah === s}
               onPress={() => audio.playSurahs(p.surahs, index, { title: name, reciter: p.reciter })}>
               <IconBtn icon="up" label="↑" onPress={() => reading.movePlaylistItem(p.id, index, index - 1)} disabled={index === 0} />
               <IconBtn icon="down" label="↓" onPress={() => reading.movePlaylistItem(p.id, index, index + 1)} disabled={index === p.surahs.length - 1} />
-              <DownloadButton jobKey={jobKey(rid, 's', s)} files={surahFiles(s)} label={t('downloadSurah')} reciter={rid} />
+              <DownloadButton jobKey={jobKey(rid, 's', s)} files={surahFiles(s, rid)} label={t('downloadSurah')} reciter={rid} />
               <IconBtn icon="close" label={t('delete')} onPress={() => reading.removeFromPlaylist(p.id, index)} />
             </ListRow>
           );

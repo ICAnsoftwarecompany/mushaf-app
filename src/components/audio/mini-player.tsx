@@ -57,7 +57,7 @@ export function MiniPlayer() {
             </View>
             <View style={{ flex: 1 }}>
               <Txt size={14} weight="bold" numberOfLines={1}>
-                {`${surahLabel(s, lang)} · ${t('ayahN', { n: num(ayahNumber(audio.ayahId)) })}`}
+                {audio.surahMode ? `${surahLabel(s, lang)} · ${t('wholeSurah')}` : `${surahLabel(s, lang)} · ${t('ayahN', { n: num(ayahNumber(audio.ayahId)) })}`}
               </Txt>
               <Txt size={11} color="textSecondary" numberOfLines={1}>
                 {lang === 'ar' ? r.ar : r.en}
